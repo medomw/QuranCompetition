@@ -24,7 +24,7 @@ const AdminLogin = () => {
     console.log('Attempting login with:', formData.email);
     
     // Hardcoded credentials check
-    if (formData.email.toLowerCase().trim() !== 'mosapaqa@gmail.com') {
+    if (formData.email.toLowerCase().trim() !== 'mohamedgomaamedomedo@gmail.com') {
       toast.error('عذراً، هذا البريد الإلكتروني غير مصرح له بالدخول');
       console.error('Email mismatch:', formData.email.toLowerCase().trim());
       return;
@@ -58,7 +58,7 @@ const AdminLogin = () => {
             password: formData.password,
             options: {
               data: {
-                username: 'mosapaqa',
+                username: 'mohamedgomaamedomedo',
               },
               emailRedirectTo: undefined,
             }
@@ -137,7 +137,7 @@ const AdminLogin = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="mosapaqa@gmail.com"
+                    placeholder="mohamedgomaamedomedo@gmail.com"
                     className="pr-10 h-11 border-2 border-emerald-200"
                     required
                   />
