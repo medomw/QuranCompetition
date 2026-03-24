@@ -11,6 +11,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import PrintForm from "./pages/PrintForm";
 import PrintAllForms from "./pages/PrintAllForms";
+import PrintLevelForms from "./pages/PrintLevelForms";
 import Certificate from "./pages/Certificate";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/print/:id" element={<PrintForm />} />
             <Route path="/admin/print-all" element={<PrintAllForms />} />
+            <Route path="/admin/print-level/:level" element={<PrintLevelForms />} />
             <Route path="/admin/certificate/:id" element={<Certificate />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

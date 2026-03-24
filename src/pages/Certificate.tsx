@@ -4,11 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Application } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Printer, ArrowRight, Award, Star, Sparkles } from 'lucide-react';
+import { Printer, ArrowRight } from 'lucide-react';
+import certificateTemplate from '@/assets/certificate-template.png';
 
 const Certificate = () => {
   const { id } = useParams<{ id: string }>();
@@ -113,9 +113,23 @@ const Certificate = () => {
                 <SelectItem value="الأول">الأول</SelectItem>
                 <SelectItem value="الثاني">الثاني</SelectItem>
                 <SelectItem value="الثالث">الثالث</SelectItem>
-                <SelectItem value="المشاركة">المشاركة</SelectItem>
-                <SelectItem value="التميز">التميز</SelectItem>
-                <SelectItem value="الإتقان">الإتقان</SelectItem>
+                <SelectItem value="الرابع">الرابع</SelectItem>
+                <SelectItem value="الخامس">الخامس</SelectItem>
+                <SelectItem value="السادس">السادس</SelectItem>
+                <SelectItem value="السابع">السابع</SelectItem>
+                <SelectItem value="الثامن">الثامن</SelectItem>
+                <SelectItem value="التاسع">التاسع</SelectItem>
+                <SelectItem value="العاشر">العاشر</SelectItem>
+                <SelectItem value="الحادي عشر">الحادي عشر</SelectItem>
+                <SelectItem value="الثاني عشر">الثاني عشر</SelectItem>
+                <SelectItem value="الثالث عشر">الثالث عشر</SelectItem>
+                <SelectItem value="الرابع عشر">الرابع عشر</SelectItem>
+                <SelectItem value="الخامس عشر">الخامس عشر</SelectItem>
+                <SelectItem value="السادس عشر">السادس عشر</SelectItem>
+                <SelectItem value="السابع عشر">السابع عشر</SelectItem>
+                <SelectItem value="الثامن عشر">الثامن عشر</SelectItem>
+                <SelectItem value="التاسع عشر">التاسع عشر</SelectItem>
+                <SelectItem value="العشرون">العشرون</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleSaveRank} variant="outline">
@@ -136,113 +150,47 @@ const Certificate = () => {
       {/* Certificate A4 */}
       <div className="min-h-screen bg-slate-100 print:bg-white py-8 print:py-0">
         <div 
-          className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none relative overflow-hidden" 
+          className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none relative" 
           style={{ width: '210mm', height: '297mm' }}
         >
-          {/* Decorative Border */}
-          <div className="absolute inset-4 border-8 border-double border-emerald-700 rounded-3xl"></div>
-          <div className="absolute inset-8 border-4 border-amber-500 rounded-2xl"></div>
+          {/* Certificate Background Template */}
+          <img 
+            src={certificateTemplate} 
+            alt="Certificate Template" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
           
-          {/* Islamic Pattern Background */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23047857' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}></div>
-          </div>
-
-          {/* Corner Decorations */}
-          <div className="absolute top-12 right-12">
-            <Star className="h-16 w-16 text-amber-500" />
-          </div>
-          <div className="absolute top-12 left-12">
-            <Star className="h-16 w-16 text-amber-500" />
-          </div>
-          <div className="absolute bottom-12 right-12">
-            <Sparkles className="h-16 w-16 text-emerald-600" />
-          </div>
-          <div className="absolute bottom-12 left-12">
-            <Sparkles className="h-16 w-16 text-emerald-600" />
-          </div>
-
-          <div className="relative h-full flex flex-col items-center justify-center p-16 text-center">
-            {/* Bismillah */}
-            <div className="mb-6">
-              <p className="text-6xl text-emerald-700">﷽</p>
-            </div>
-
-            {/* Award Icon */}
-            <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-6 rounded-full mb-8 shadow-2xl">
-              <Award className="h-24 w-24 text-white" />
-            </div>
-
-            {/* Title */}
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold text-emerald-800 mb-4">شهادة تقدير</h1>
-              <div className="w-64 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-4"></div>
-              <p className="text-2xl text-emerald-700 font-semibold">مسابقة القرآن الكريم</p>
-              <p className="text-xl text-emerald-600">قرية الحاج حسن جودة</p>
-            </div>
-
-            {/* Content */}
-            <div className="bg-gradient-to-br from-emerald-50 to-amber-50 rounded-2xl p-8 mb-8 border-4 border-emerald-300 shadow-xl max-w-2xl">
-              <p className="text-2xl text-slate-700 mb-6 leading-relaxed">
-                نشهد بأن المتسابق
-              </p>
-              
-              <div className="bg-white rounded-xl p-6 mb-6 border-2 border-emerald-400 shadow-lg">
-                <p className="text-4xl font-bold text-emerald-800">{application.full_name}</p>
-              </div>
-
-              <p className="text-xl text-slate-700 mb-4">
-                قد شارك في مسابقة حفظ القرآن الكريم
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-lg p-4 border-2 border-amber-300">
-                  <p className="text-sm text-slate-600 mb-1">المستوى</p>
-                  <p className="text-lg font-bold text-emerald-700">{getLevelName(application.parts_count)}</p>
-                </div>
-                {rank && (
-                  <div className="bg-white rounded-lg p-4 border-2 border-amber-300">
-                    <p className="text-sm text-slate-600 mb-1">المركز</p>
-                    <p className="text-lg font-bold text-amber-600">{rank}</p>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-xl text-slate-700">
-                نسأل الله أن يتقبل منه وأن يجعله من حفظة كتابه الكريم
+          {/* Certificate Content Overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-16">
+            {/* Student Name - positioned in the middle area */}
+            <div className="absolute" style={{ top: '42%', right: '25%', left: '25%' }}>
+              <p className="text-4xl font-bold text-center text-slate-800" style={{ 
+                fontFamily: 'Cairo, sans-serif',
+                textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                {application.full_name}
               </p>
             </div>
 
-            {/* Quranic Verse */}
-            <div className="bg-emerald-700 rounded-xl p-6 mb-8 max-w-2xl shadow-xl">
-              <p className="text-2xl text-amber-200 font-semibold leading-relaxed mb-2">
-                "إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ"
+            {/* Level - positioned below the name */}
+            <div className="absolute" style={{ top: '57%', right: '30%', left: '30%' }}>
+              <p className="text-2xl font-bold text-center text-amber-700" style={{ 
+                fontFamily: 'Cairo, sans-serif'
+              }}>
+                {getLevelName(application.parts_count)}
               </p>
-              <p className="text-emerald-200">سورة الإسراء - آية 9</p>
             </div>
 
-            {/* Footer */}
-            <div className="grid grid-cols-2 gap-16 w-full max-w-2xl">
-              <div className="text-center">
-                <div className="border-t-2 border-slate-400 pt-2 mb-2">
-                  <p className="text-slate-700 font-semibold">التاريخ</p>
-                </div>
-                <p className="text-slate-600">
-                  {new Date().toLocaleDateString('ar-EG', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+            {/* Rank - positioned at the rank area */}
+            {rank && (
+              <div className="absolute" style={{ top: '64%', right: '30%', left: '30%' }}>
+                <p className="text-3xl font-bold text-center text-amber-600" style={{ 
+                  fontFamily: 'Cairo, sans-serif'
+                }}>
+                  {rank}
                 </p>
               </div>
-              <div className="text-center">
-                <div className="border-t-2 border-slate-400 pt-2 mb-2">
-                  <p className="text-slate-700 font-semibold">لجنة المسابقة</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { Application, Settings } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award } from 'lucide-react';
+import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award, ChevronDown, ChevronUp } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -14,9 +14,23 @@ const AdminDashboard = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [deleteLevelDialogOpen, setDeleteLevelDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [expandedLevels, setExpandedLevels] = useState<{ [key: number]: boolean }>({
+    30: true, 20: true, 15: true, 10: true, 5: true, 3: true, 1: true
+  });
+
+  const levels = [
+    { value: 30, label: 'المستوى الأول - القرآن كاملاً (30 جزء)', color: 'emerald' },
+    { value: 20, label: 'المستوى الثاني - ثلثي القرآن (20 جزء)', color: 'blue' },
+    { value: 15, label: 'المستوى الثالث - نصف القرآن (15 جزء)', color: 'purple' },
+    { value: 10, label: 'المستوى الرابع - 10 أجزاء', color: 'amber' },
+    { value: 5, label: 'المستوى الخامس - 5 أجزاء', color: 'orange' },
+    { value: 3, label: 'المستوى السادس - 3 أجزاء', color: 'rose' },
+    { value: 1, label: 'المستوى السابع - 1 جزء', color: 'cyan' },
+  ];
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -61,8 +75,16 @@ const AdminDashboard = () => {
     }
   }, [user]);
 
+  const getApplicationsByLevel = (level: number) => {
+    return applications.filter(app => app.parts_count === level);
+  };
+
   const handlePrint = (id: string) => {
     navigate(`/admin/print/${id}`);
+  };
+
+  const handlePrintLevel = (level: number) => {
+    navigate(`/admin/print-level/${level}`);
   };
 
   const handleCertificate = (id: string) => {
@@ -89,21 +111,24 @@ const AdminDashboard = () => {
     setSelectedId(null);
   };
 
-  const handleDeleteAll = async () => {
+  const handleDeleteLevel = async () => {
+    if (selectedLevel === null) return;
+
     const { error } = await supabase
       .from('applications')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .eq('parts_count', selectedLevel);
 
     if (error) {
-      console.error('Error deleting all applications:', error);
-      toast.error('حدث خطأ في حذف جميع الاستمارات');
+      console.error('Error deleting level applications:', error);
+      toast.error('حدث خطأ في حذف استمارات المستوى');
     } else {
-      toast.success('تم حذف جميع الاستمارات بنجاح');
+      toast.success('تم حذف جميع استمارات المستوى بنجاح');
       fetchApplications();
     }
 
-    setDeleteAllDialogOpen(false);
+    setDeleteLevelDialogOpen(false);
+    setSelectedLevel(null);
   };
 
   const toggleRegistration = async () => {
@@ -122,6 +147,13 @@ const AdminDashboard = () => {
       toast.success(newStatus ? 'تم فتح التسجيل' : 'تم إغلاق التسجيل');
       fetchSettings();
     }
+  };
+
+  const toggleLevel = (level: number) => {
+    setExpandedLevels(prev => ({
+      ...prev,
+      [level]: !prev[level]
+    }));
   };
 
   const handleLogout = async () => {
@@ -174,23 +206,6 @@ const AdminDashboard = () => {
                   )}
                 </Button>
               )}
-              <Button
-                onClick={() => navigate('/admin/print-all')}
-                variant="outline"
-                className="bg-amber-500 text-white border-amber-400 hover:bg-amber-600"
-              >
-                <FileStack className="h-4 w-4 ml-2" />
-                طباعة الكل ({applications.length})
-              </Button>
-              <Button
-                onClick={() => setDeleteAllDialogOpen(true)}
-                variant="outline"
-                className="bg-red-500 text-white border-red-400 hover:bg-red-600"
-                disabled={applications.length === 0}
-              >
-                <Trash2 className="h-4 w-4 ml-2" />
-                حذف الكل
-              </Button>
               <Button
                 onClick={fetchApplications}
                 variant="outline"
@@ -251,107 +266,147 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Applications Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 bg-emerald-700 border-b">
-            <h2 className="text-xl font-bold text-white">قائمة المتقدمين</h2>
+        {/* Levels Sections */}
+        {loading ? (
+          <div className="p-8 text-center text-slate-600">
+            جاري تحميل البيانات...
           </div>
+        ) : applications.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-8 text-center text-slate-600">
+            لا توجد طلبات حتى الآن
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {levels.map((level) => {
+              const levelApplications = getApplicationsByLevel(level.value);
+              const isExpanded = expandedLevels[level.value];
+              
+              if (levelApplications.length === 0) return null;
 
-          {loading ? (
-            <div className="p-8 text-center text-slate-600">
-              جاري تحميل البيانات...
-            </div>
-          ) : applications.length === 0 ? (
-            <div className="p-8 text-center text-slate-600">
-              لا توجد طلبات حتى الآن
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-100 border-b-2 border-slate-200">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">#</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الاسم</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">السن</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">المستوى</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">تاريخ التسجيل</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الحالة</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {applications.map((app, index) => (
-                    <tr key={app.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-600">{index + 1}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{app.full_name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{app.age} سنة</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {app.parts_count === 30 ? 'القرآن كاملاً' :
-                         app.parts_count === 20 ? 'ثلثي القرآن' :
-                         app.parts_count === 15 ? 'نصف القرآن' :
-                         app.parts_count === 10 ? '10 أجزاء' :
-                         app.parts_count === 5 ? '5 أجزاء' :
-                         app.parts_count === 3 ? '3 أجزاء' :
-                         app.parts_count === 1 ? '1 جزء' :
-                         `${app.parts_count} جزء`}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {new Date(app.created_at).toLocaleDateString('ar-EG', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </td>
-                      <td className="px-6 py-4">
-                        {app.printed ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            تم الطباعة
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            في الانتظار
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={() => handlePrint(app.id)}
-                            size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-700"
-                          >
-                            <Printer className="h-4 w-4 ml-1" />
-                            طباعة
-                          </Button>
-                          <Button
-                            onClick={() => handleCertificate(app.id)}
-                            size="sm"
-                            className="bg-amber-600 hover:bg-amber-700"
-                          >
-                            <Award className="h-4 w-4 ml-1" />
-                            شهادة
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setSelectedId(app.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                            size="sm"
-                            variant="destructive"
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            <Trash2 className="h-4 w-4 ml-1" />
-                            حذف
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+              return (
+                <div key={level.value} className={`bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-${level.color}-500`}>
+                  {/* Level Header */}
+                  <div className={`bg-${level.color}-50 px-6 py-4 border-b flex items-center justify-between`}>
+                    <div className="flex items-center gap-4 flex-1">
+                      <Button
+                        onClick={() => toggleLevel(level.value)}
+                        variant="ghost"
+                        size="sm"
+                        className="p-2"
+                      >
+                        {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                      </Button>
+                      <h2 className="text-xl font-bold text-slate-800">{level.label}</h2>
+                      <span className={`text-sm font-semibold px-3 py-1 rounded-full bg-${level.color}-100 text-${level.color}-800`}>
+                        {levelApplications.length} متقدم
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => handlePrintLevel(level.value)}
+                        size="sm"
+                        className={`bg-${level.color}-600 hover:bg-${level.color}-700`}
+                      >
+                        <FileStack className="h-4 w-4 ml-1" />
+                        طباعة الكل ({levelApplications.length})
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedLevel(level.value);
+                          setDeleteLevelDialogOpen(true);
+                        }}
+                        size="sm"
+                        variant="destructive"
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        <Trash2 className="h-4 w-4 ml-1" />
+                        حذف الكل
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Level Content */}
+                  {isExpanded && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-100 border-b-2 border-slate-200">
+                          <tr>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">#</th>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الاسم</th>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">السن</th>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">تاريخ التسجيل</th>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الحالة</th>
+                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الإجراءات</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {levelApplications.map((app, index) => (
+                            <tr key={app.id} className="hover:bg-slate-50">
+                              <td className="px-6 py-4 text-sm text-slate-600">{index + 1}</td>
+                              <td className="px-6 py-4 text-sm font-semibold text-slate-800">{app.full_name}</td>
+                              <td className="px-6 py-4 text-sm text-slate-600">{app.age} سنة</td>
+                              <td className="px-6 py-4 text-sm text-slate-600">
+                                {new Date(app.created_at).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })}
+                              </td>
+                              <td className="px-6 py-4">
+                                {app.printed ? (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    تم الطباعة
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    في الانتظار
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    onClick={() => handlePrint(app.id)}
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700"
+                                  >
+                                    <Printer className="h-4 w-4 ml-1" />
+                                    طباعة
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleCertificate(app.id)}
+                                    size="sm"
+                                    className="bg-amber-600 hover:bg-amber-700"
+                                  >
+                                    <Award className="h-4 w-4 ml-1" />
+                                    شهادة
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setSelectedId(app.id);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    size="sm"
+                                    variant="destructive"
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4 ml-1" />
+                                    حذف
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       {/* Delete Confirmation Dialog */}
@@ -382,27 +437,27 @@ const AdminDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete All Confirmation Dialog */}
-      <Dialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
+      {/* Delete Level Confirmation Dialog */}
+      <Dialog open={deleteLevelDialogOpen} onOpenChange={setDeleteLevelDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>تأكيد حذف الكل</DialogTitle>
+            <DialogTitle>تأكيد حذف المستوى</DialogTitle>
             <DialogDescription>
-              هل أنت متأكد من حذف جميع الاستمارات ({applications.length} استمارة)؟ لا يمكن التراجع عن هذا الإجراء.
+              هل أنت متأكد من حذف جميع استمارات هذا المستوى ({selectedLevel && getApplicationsByLevel(selectedLevel).length} استمارة)؟ لا يمكن التراجع عن هذا الإجراء.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-start">
             <Button
               type="button"
               variant="destructive"
-              onClick={handleDeleteAll}
+              onClick={handleDeleteLevel}
             >
               نعم، احذف الكل
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => setDeleteAllDialogOpen(false)}
+              onClick={() => setDeleteLevelDialogOpen(false)}
             >
               إلغاء
             </Button>

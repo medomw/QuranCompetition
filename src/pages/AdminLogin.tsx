@@ -7,65 +7,70 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Lock, Mail, Shield, Key } from 'lucide-react';
+import { Lock, Shield } from 'lucide-react';
+
+const ADMIN_EMAIL = 'mohamedgomaamedomedo@gmail.com';
+const ADMIN_PASSWORD = '123456';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'email' | 'otp'>('email');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if email is authorized
-    if (email.toLowerCase().trim() !== 'mohamedgomaamedomedo@gmail.com') {
-      toast.error('عذراً، هذا البريد الإلكتروني غير مصرح له بالدخول');
+    if (!password) {
+      toast.error('يرجى إدخال كلمة المرور');
+      return;
+    }
+
+    // Check password
+    if (password !== ADMIN_PASSWORD) {
+      toast.error('كلمة المرور غير صحيحة');
+      setPassword('');
       return;
     }
     
     setLoading(true);
     
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.toLowerCase().trim(),
-      options: {
-        shouldCreateUser: true,
-      },
+    // Try to login with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
     });
 
     if (error) {
-      console.error('Error sending OTP:', error);
-      toast.error('حدث خطأ في إرسال رمز التحقق');
-      setLoading(false);
-    } else {
-      toast.success('تم إرسال رمز التحقق إلى بريدك الإلكتروني');
-      setStep('otp');
-      setLoading(false);
-    }
-  };
+      // If account doesn't exist, create it
+      if (error.message.includes('Invalid login credentials')) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: ADMIN_EMAIL,
+          password: ADMIN_PASSWORD,
+          options: {
+            data: {
+              username: 'المسؤول',
+            },
+          },
+        });
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!otp || otp.length < 4) {
-      toast.error('يرجى إدخال رمز التحقق');
-      return;
-    }
-    
-    setLoading(true);
-    
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.toLowerCase().trim(),
-      token: otp,
-      type: 'email',
-    });
+        if (signUpError) {
+          console.error('Error creating account:', signUpError);
+          toast.error('حدث خطأ في إنشاء الحساب');
+          setLoading(false);
+          return;
+        }
 
-    if (error) {
-      console.error('Error verifying OTP:', error);
-      toast.error('رمز التحقق غير صحيح');
-      setLoading(false);
+        if (signUpData.user) {
+          toast.success('تم تسجيل الدخول بنجاح');
+          login(mapSupabaseUser(signUpData.user));
+          navigate('/admin/dashboard');
+        }
+      } else {
+        console.error('Error logging in:', error);
+        toast.error('حدث خطأ في تسجيل الدخول');
+        setLoading(false);
+      }
     } else if (data.user) {
       toast.success('تم تسجيل الدخول بنجاح');
       login(mapSupabaseUser(data.user));
@@ -85,77 +90,33 @@ const AdminLogin = () => {
           </div>
 
           <div className="p-8">
-            {step === 'email' ? (
-              <form onSubmit={handleSendOtp} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-emerald-800 font-semibold">
-                    البريد الإلكتروني
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute right-3 top-3 h-5 w-5 text-emerald-600" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="mohamedgomaamedomedo@gmail.com"
-                      className="pr-10 h-11 border-2 border-emerald-200"
-                      required
-                    />
-                  </div>
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-emerald-800 font-semibold">
+                  كلمة المرور
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute right-3 top-3 h-5 w-5 text-emerald-600" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="أدخل كلمة المرور"
+                    className="pr-10 h-11 border-2 border-emerald-200"
+                    required
+                  />
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
-                >
-                  {loading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-emerald-800 font-semibold">
-                    رمز التحقق
-                  </Label>
-                  <div className="relative">
-                    <Key className="absolute right-3 top-3 h-5 w-5 text-emerald-600" />
-                    <Input
-                      id="otp"
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="أدخل رمز التحقق المرسل إلى بريدك"
-                      className="pr-10 h-11 border-2 border-emerald-200"
-                      required
-                    />
-                  </div>
-                  <p className="text-sm text-emerald-600">تم إرسال الرمز إلى: {email}</p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setStep('email');
-                      setOtp('');
-                    }}
-                    variant="outline"
-                    className="flex-1 h-11"
-                  >
-                    تغيير البريد
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    {loading ? 'جاري التحقق...' : 'تسجيل الدخول'}
-                  </Button>
-                </div>
-              </form>
-            )}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
+              >
+                {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              </Button>
+            </form>
           </div>
         </div>
 
