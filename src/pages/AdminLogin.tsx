@@ -21,64 +21,95 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Attempting login with:', formData.email);
+    
     // Hardcoded credentials check
-    if (formData.email.toLowerCase() !== 'mosapaqa@gmail.com') {
+    if (formData.email.toLowerCase().trim() !== 'mosapaqa@gmail.com') {
       toast.error('عذراً، هذا البريد الإلكتروني غير مصرح له بالدخول');
+      console.error('Email mismatch:', formData.email.toLowerCase().trim());
       return;
     }
     
     if (formData.password !== '123456') {
       toast.error('كلمة المرور غير صحيحة');
+      console.error('Password mismatch');
       return;
     }
     
     setLoading(true);
+    console.log('Credentials validated, attempting Supabase login...');
     
-    // Try to login with Supabase (if account exists)
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    });
-
-    if (error) {
-      // If account doesn't exist, try to create it
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
+    try {
+      // Try to login with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email.toLowerCase().trim(),
         password: formData.password,
-        options: {
-          data: {
-            username: 'mosapaqa',
+      });
+
+      if (error) {
+        console.log('Login failed, error:', error.message);
+        
+        // If account doesn't exist, create it
+        if (error.message.includes('Invalid') || error.message.includes('invalid')) {
+          console.log('Account does not exist, creating new account...');
+          
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: formData.email.toLowerCase().trim(),
+            password: formData.password,
+            options: {
+              data: {
+                username: 'mosapaqa',
+              },
+              emailRedirectTo: undefined,
+            }
+          });
+
+          if (signUpError) {
+            console.error('SignUp error:', signUpError);
+            toast.error(`خطأ في إنشاء الحساب: ${signUpError.message}`);
+            setLoading(false);
+            return;
           }
+
+          console.log('Account created successfully:', signUpData);
+
+          // Wait a moment for the account to be fully created
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // Try to login again
+          console.log('Attempting login after signup...');
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email: formData.email.toLowerCase().trim(),
+            password: formData.password,
+          });
+
+          if (loginError) {
+            console.error('Login error after signup:', loginError);
+            toast.error(`خطأ في تسجيل الدخول: ${loginError.message}`);
+            setLoading(false);
+            return;
+          }
+
+          if (loginData.user) {
+            console.log('Login successful after signup');
+            toast.success('تم إنشاء الحساب وتسجيل الدخول بنجاح');
+            login(mapSupabaseUser(loginData.user));
+            navigate('/admin/dashboard');
+          }
+        } else {
+          toast.error(`خطأ في تسجيل الدخول: ${error.message}`);
+          setLoading(false);
         }
-      });
-
-      if (signUpError) {
-        console.error('Login/SignUp error:', signUpError);
-        toast.error('حدث خطأ في تسجيل الدخول');
-        setLoading(false);
-        return;
+      } else if (data.user) {
+        console.log('Login successful:', data.user.email);
+        toast.success('تم تسجيل الدخول بنجاح');
+        login(mapSupabaseUser(data.user));
+        navigate('/admin/dashboard');
       }
-
-      // Try to login again after signup
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (loginError) {
-        console.error('Login error after signup:', loginError);
-        toast.error('حدث خطأ في تسجيل الدخول');
-        setLoading(false);
-        return;
-      }
-
-      toast.success('تم تسجيل الدخول بنجاح');
-      login(mapSupabaseUser(loginData.user));
-      navigate('/admin/dashboard');
-    } else {
-      toast.success('تم تسجيل الدخول بنجاح');
-      login(mapSupabaseUser(data.user));
-      navigate('/admin/dashboard');
+    } catch (error: any) {
+      console.error('Unexpected error:', error);
+      toast.error('حدث خطأ غير متوقع');
+      setLoading(false);
     }
   };
 
