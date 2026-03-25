@@ -23,13 +23,76 @@ const AdminDashboard = () => {
   });
 
   const levels = [
-    { value: 30, label: 'المستوى الأول - القرآن كاملاً (30 جزء)', color: 'emerald' },
-    { value: 20, label: 'المستوى الثاني - ثلثي القرآن (20 جزء)', color: 'blue' },
-    { value: 15, label: 'المستوى الثالث - نصف القرآن (15 جزء)', color: 'purple' },
-    { value: 10, label: 'المستوى الرابع - 10 أجزاء', color: 'amber' },
-    { value: 5, label: 'المستوى الخامس - 5 أجزاء', color: 'orange' },
-    { value: 3, label: 'المستوى السادس - 3 أجزاء', color: 'rose' },
-    { value: 1, label: 'المستوى السابع - 1 جزء', color: 'cyan' },
+    { 
+      value: 30, 
+      label: 'المستوى الأول - القرآن كاملاً (30 جزء)', 
+      headerBg: 'bg-emerald-50',
+      badgeBg: 'bg-emerald-100',
+      badgeText: 'text-emerald-800',
+      buttonBg: 'bg-emerald-600',
+      buttonHover: 'hover:bg-emerald-700',
+      border: 'border-emerald-500'
+    },
+    { 
+      value: 20, 
+      label: 'المستوى الثاني - ثلثي القرآن (20 جزء)', 
+      headerBg: 'bg-blue-50',
+      badgeBg: 'bg-blue-100',
+      badgeText: 'text-blue-800',
+      buttonBg: 'bg-blue-600',
+      buttonHover: 'hover:bg-blue-700',
+      border: 'border-blue-500'
+    },
+    { 
+      value: 15, 
+      label: 'المستوى الثالث - نصف القرآن (15 جزء)', 
+      headerBg: 'bg-purple-50',
+      badgeBg: 'bg-purple-100',
+      badgeText: 'text-purple-800',
+      buttonBg: 'bg-purple-600',
+      buttonHover: 'hover:bg-purple-700',
+      border: 'border-purple-500'
+    },
+    { 
+      value: 10, 
+      label: 'المستوى الرابع - 10 أجزاء', 
+      headerBg: 'bg-amber-50',
+      badgeBg: 'bg-amber-100',
+      badgeText: 'text-amber-800',
+      buttonBg: 'bg-amber-600',
+      buttonHover: 'hover:bg-amber-700',
+      border: 'border-amber-500'
+    },
+    { 
+      value: 5, 
+      label: 'المستوى الخامس - 5 أجزاء', 
+      headerBg: 'bg-orange-50',
+      badgeBg: 'bg-orange-100',
+      badgeText: 'text-orange-800',
+      buttonBg: 'bg-orange-600',
+      buttonHover: 'hover:bg-orange-700',
+      border: 'border-orange-500'
+    },
+    { 
+      value: 3, 
+      label: 'المستوى السادس - 3 أجزاء', 
+      headerBg: 'bg-rose-50',
+      badgeBg: 'bg-rose-100',
+      badgeText: 'text-rose-800',
+      buttonBg: 'bg-rose-600',
+      buttonHover: 'hover:bg-rose-700',
+      border: 'border-rose-500'
+    },
+    { 
+      value: 1, 
+      label: 'المستوى السابع - 1 جزء', 
+      headerBg: 'bg-cyan-50',
+      badgeBg: 'bg-cyan-100',
+      badgeText: 'text-cyan-800',
+      buttonBg: 'bg-cyan-600',
+      buttonHover: 'hover:bg-cyan-700',
+      border: 'border-cyan-500'
+    },
   ];
 
   useEffect(() => {
@@ -284,9 +347,9 @@ const AdminDashboard = () => {
               if (levelApplications.length === 0) return null;
 
               return (
-                <div key={level.value} className={`bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-${level.color}-500`}>
+                <div key={level.value} className={`bg-white rounded-lg shadow-md overflow-hidden border-t-4 ${level.border}`}>
                   {/* Level Header */}
-                  <div className={`bg-${level.color}-50 px-6 py-4 border-b flex items-center justify-between`}>
+                  <div className={`${level.headerBg} px-6 py-4 border-b flex items-center justify-between`}>
                     <div className="flex items-center gap-4 flex-1">
                       <Button
                         onClick={() => toggleLevel(level.value)}
@@ -297,7 +360,7 @@ const AdminDashboard = () => {
                         {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                       </Button>
                       <h2 className="text-xl font-bold text-slate-800">{level.label}</h2>
-                      <span className={`text-sm font-semibold px-3 py-1 rounded-full bg-${level.color}-100 text-${level.color}-800`}>
+                      <span className={`text-sm font-semibold px-3 py-1 rounded-full ${level.badgeBg} ${level.badgeText}`}>
                         {levelApplications.length} متقدم
                       </span>
                     </div>
@@ -306,7 +369,7 @@ const AdminDashboard = () => {
                       <Button
                         onClick={() => handlePrintLevel(level.value)}
                         size="sm"
-                        className={`bg-${level.color}-600 hover:bg-${level.color}-700`}
+                        className={`${level.buttonBg} ${level.buttonHover}`}
                       >
                         <FileStack className="h-4 w-4 ml-1" />
                         طباعة الكل ({levelApplications.length})
