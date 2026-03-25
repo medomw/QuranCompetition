@@ -147,35 +147,67 @@ const Certificate = () => {
         </div>
       </div>
 
-      {/* Certificate A4 */}
-      <div className="min-h-screen bg-slate-100 print:bg-white py-8 print:py-0">
+      {/* Certificate - Original Size */}
+      <div className="min-h-screen bg-slate-100 print:bg-white py-8 print:py-0 flex items-center justify-center">
         <div 
-          className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none relative" 
-          style={{ width: '210mm', height: '297mm' }}
+          className="bg-white shadow-2xl print:shadow-none relative" 
+          style={{ 
+            width: '1754px',
+            height: '1240px',
+            transform: 'scale(0.5)',
+            transformOrigin: 'center center'
+          }}
         >
           {/* Certificate Background Template */}
           <img 
             src={certificateTemplate} 
             alt="Certificate Template" 
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
+            style={{ width: '1754px', height: '1240px' }}
           />
           
           {/* Certificate Content Overlay */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-16">
-            {/* Student Name - positioned in the middle area */}
-            <div className="absolute" style={{ top: '42%', right: '25%', left: '25%' }}>
-              <p className="text-4xl font-bold text-center text-slate-800" style={{ 
+          <div className="absolute inset-0" style={{ width: '1754px', height: '1240px' }}>
+            {/* Student Name - positioned over the dots */}
+            <div className="absolute" style={{ 
+              top: '48.5%', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              width: '60%',
+              textAlign: 'center'
+            }}>
+              <p className="font-bold" style={{ 
+                fontSize: '72px',
                 fontFamily: 'Cairo, sans-serif',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                background: 'linear-gradient(135deg, #D4AF37 0%, #FFD700 25%, #FDB931 50%, #FFD700 75%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 0 30px rgba(212, 175, 55, 0.5), 0 4px 8px rgba(0,0,0,0.2)',
+                letterSpacing: '2px',
+                lineHeight: '1.2'
               }}>
                 {application.full_name}
               </p>
             </div>
 
             {/* Level - positioned below the name */}
-            <div className="absolute" style={{ top: '57%', right: '30%', left: '30%' }}>
-              <p className="text-2xl font-bold text-center text-amber-700" style={{ 
-                fontFamily: 'Cairo, sans-serif'
+            <div className="absolute" style={{ 
+              top: '62.5%', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              width: '60%',
+              textAlign: 'center'
+            }}>
+              <p className="font-bold" style={{ 
+                fontSize: '52px',
+                fontFamily: 'Cairo, sans-serif',
+                background: 'linear-gradient(135deg, #B8860B 0%, #DAA520 25%, #FFD700 50%, #DAA520 75%, #B8860B 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 0 20px rgba(218, 165, 32, 0.4), 0 3px 6px rgba(0,0,0,0.15)',
+                letterSpacing: '1px'
               }}>
                 {getLevelName(application.parts_count)}
               </p>
@@ -183,11 +215,24 @@ const Certificate = () => {
 
             {/* Rank - positioned at the rank area */}
             {rank && (
-              <div className="absolute" style={{ top: '64%', right: '30%', left: '30%' }}>
-                <p className="text-3xl font-bold text-center text-amber-600" style={{ 
-                  fontFamily: 'Cairo, sans-serif'
+              <div className="absolute" style={{ 
+                top: '72%', 
+                left: '50%', 
+                transform: 'translateX(-50%)',
+                width: '50%',
+                textAlign: 'center'
+              }}>
+                <p className="font-bold" style={{ 
+                  fontSize: '64px',
+                  fontFamily: 'Cairo, sans-serif',
+                  background: 'linear-gradient(135deg, #C5A028 0%, #FFD700 25%, #FFED4E 50%, #FFD700 75%, #C5A028 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 0 25px rgba(255, 215, 0, 0.5), 0 4px 8px rgba(0,0,0,0.2)',
+                  letterSpacing: '1.5px'
                 }}>
-                  {rank}
+                  المركز {rank}
                 </p>
               </div>
             )}
