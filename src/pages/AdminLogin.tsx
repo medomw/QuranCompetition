@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Lock, Shield } from 'lucide-react';
 
 const ADMIN_EMAIL = 'mohamedgomaamedomedo@gmail.com';
-const ADMIN_PASSWORD = '123456';
+const ADMIN_PASSWORD = '2292006';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
