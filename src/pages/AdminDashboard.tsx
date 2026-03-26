@@ -195,20 +195,28 @@ const AdminDashboard = () => {
   };
 
   const toggleRegistration = async () => {
-    if (!settings) return;
+    if (!settings) {
+      toast.error('لا توجد إعدادات متاحة');
+      return;
+    }
 
     const newStatus = !settings.registration_open;
-    const { error } = await supabase
+    console.log('Updating registration status to:', newStatus);
+    
+    const { data, error } = await supabase
       .from('settings')
       .update({ registration_open: newStatus, updated_at: new Date().toISOString() })
-      .eq('id', settings.id);
+      .eq('id', settings.id)
+      .select();
+
+    console.log('Update result:', { data, error });
 
     if (error) {
       console.error('Error updating registration status:', error);
-      toast.error('حدث خطأ في تحديث حالة التسجيل');
+      toast.error('حدث خطأ في تحديث حالة التسجيل: ' + error.message);
     } else {
-      toast.success(newStatus ? 'تم فتح التسجيل' : 'تم إغلاق التسجيل');
-      fetchSettings();
+      toast.success(newStatus ? 'تم فتح التسجيل بنجاح ✓' : 'تم إغلاق التسجيل بنجاح ✓');
+      await fetchSettings();
     }
   };
 
