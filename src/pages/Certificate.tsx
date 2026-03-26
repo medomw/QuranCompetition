@@ -161,67 +161,58 @@ const Certificate = () => {
           }}
           dir="rtl"
         >
-          {/* Student Name - positioned to match template */}
+          {/* Student Name - positioned on the dotted line after "الطالب/ة:" */}
           <div className="absolute" style={{ 
-            top: '45%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80%',
-            textAlign: 'center'
+            top: '31.5%',
+            right: '18%',
+            width: '65%'
           }}>
-            <h2 className="text-5xl font-bold mb-2" style={{ 
+            <h2 className="text-4xl font-bold" style={{ 
               fontFamily: 'Cairo, sans-serif',
-              background: 'linear-gradient(135deg, #B8860B 0%, #FFD700 50%, #B8860B 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '2px 2px 4px rgba(184, 134, 11, 0.3)',
-              letterSpacing: '3px'
+              color: '#D4AF37',
+              textAlign: 'center',
+              letterSpacing: '2px',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
             }}>
               {application.full_name}
             </h2>
           </div>
 
-          {/* Level - positioned below name */}
+          {/* Rank - positioned on the dotted line after "وحصوله على المركز" */}
+          {rank && (
+            <div className="absolute" style={{ 
+              top: '57.5%',
+              right: '18%',
+              width: '25%'
+            }}>
+              <h3 className="text-3xl font-bold" style={{ 
+                fontFamily: 'Cairo, sans-serif',
+                color: '#D4AF37',
+                textAlign: 'center',
+                letterSpacing: '1px',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
+              }}>
+                {rank}
+              </h3>
+            </div>
+          )}
+
+          {/* Level - positioned on the dotted line after "في مستوى" */}
           <div className="absolute" style={{ 
-            top: '60%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '70%',
-            textAlign: 'center'
+            top: '64.5%',
+            right: '18%',
+            width: '40%'
           }}>
-            <h3 className="text-4xl font-bold" style={{ 
+            <h3 className="text-3xl font-bold" style={{ 
               fontFamily: 'Cairo, sans-serif',
-              background: 'linear-gradient(135deg, #B8860B 0%, #FFD700 50%, #B8860B 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '2px 2px 4px rgba(184, 134, 11, 0.3)',
-              letterSpacing: '2px'
+              color: '#D4AF37',
+              textAlign: 'center',
+              letterSpacing: '1px',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
             }}>
               {getLevelName(application.parts_count)}
             </h3>
           </div>
-
-          {/* Rank - positioned at bottom */}
-          {rank && (
-            <div className="absolute" style={{ 
-              top: '75%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '60%',
-              textAlign: 'center'
-            }}>
-              <h3 className="text-4xl font-bold" style={{ 
-                fontFamily: 'Cairo, sans-serif',
-                background: 'linear-gradient(135deg, #B8860B 0%, #FFD700 50%, #B8860B 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: '2px 2px 4px rgba(184, 134, 11, 0.3)',
-                letterSpacing: '2px'
-              }}>
-                المركز {rank}
-              </h3>
-            </div>
-          )}
         </div>
       </div>
     </div>
