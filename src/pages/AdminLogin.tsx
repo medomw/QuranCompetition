@@ -79,31 +79,31 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 flex items-center justify-center px-3 sm:px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-4 sm:px-8 py-4 sm:py-6 text-center">
-            <Shield className="h-10 w-10 sm:h-12 sm:w-12 text-white mx-auto mb-2" />
-            <h1 className="text-xl sm:text-2xl font-bold text-white">لوحة تحكم المسؤولين</h1>
-            <p className="text-emerald-100 text-xs sm:text-sm mt-1">مسابقة القرآن الكريم</p>
+          <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-8 py-6 text-center">
+            <Shield className="h-12 w-12 text-white mx-auto mb-2" />
+            <h1 className="text-2xl font-bold text-white">لوحة تحكم المسؤولين</h1>
+            <p className="text-emerald-100 text-sm mt-1">مسابقة القرآن الكريم</p>
           </div>
 
-          <div className="p-4 sm:p-8">
-            <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+          <div className="p-8">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base sm:text-base text-emerald-800 font-semibold">
+                <Label htmlFor="password" className="text-emerald-800 font-semibold">
                   كلمة المرور
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                  <Lock className="absolute right-3 top-3 h-5 w-5 text-emerald-600" />
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="أدخل كلمة المرور"
-                    className="pr-9 sm:pr-10 h-10 sm:h-11 border-2 border-emerald-200 text-base"
+                    className="pr-10 h-11 border-2 border-emerald-200"
                     required
                   />
                 </div>
@@ -112,7 +112,7 @@ const AdminLogin = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-10 sm:h-11 bg-emerald-600 hover:bg-emerald-700 text-base sm:text-base"
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
               >
                 {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
               </Button>
@@ -120,8 +120,8 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        <div className="mt-4 sm:mt-6 text-center">
-          <a href="/" className="text-white hover:text-emerald-200 underline text-sm sm:text-base">
+        <div className="mt-6 text-center">
+          <a href="/" className="text-white hover:text-emerald-200 underline">
             العودة إلى الصفحة الرئيسية
           </a>
         </div>

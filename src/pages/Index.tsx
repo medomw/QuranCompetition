@@ -117,59 +117,59 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-12 max-w-3xl relative">
+      <main className="container mx-auto px-4 py-12 max-w-3xl relative">
         {/* Back Button */}
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-6">
           <Button
             onClick={() => navigate('/')}
             variant="outline"
-            className="bg-white/80 backdrop-blur-sm border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold text-sm sm:text-base px-3 sm:px-4 py-2 h-auto"
+            className="bg-white/80 backdrop-blur-sm border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold"
           >
-            <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
+            <ArrowRight className="h-5 w-5 ml-2" />
             العودة للصفحة الرئيسية
           </Button>
         </div>
 
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 border-emerald-600 overflow-hidden relative">
+        <div className="bg-white rounded-3xl shadow-2xl border-4 border-emerald-600 overflow-hidden relative">
           {/* Decorative Corner Elements */}
-          <div className="absolute top-0 right-0 w-20 sm:w-32 h-20 sm:h-32 bg-gradient-to-bl from-amber-400/20 to-transparent rounded-bl-full"></div>
-          <div className="absolute top-0 left-0 w-20 sm:w-32 h-20 sm:h-32 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-br-full"></div>
-          <div className="absolute bottom-0 right-0 w-24 sm:w-40 h-24 sm:h-40 bg-gradient-to-tl from-emerald-400/20 to-transparent rounded-tl-full"></div>
-          <div className="absolute bottom-0 left-0 w-24 sm:w-40 h-24 sm:h-40 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-tr-full"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-400/20 to-transparent rounded-bl-full"></div>
+          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-br-full"></div>
+          <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-emerald-400/20 to-transparent rounded-tl-full"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-tr-full"></div>
 
           {/* Form Header */}
-          <div className="bg-gradient-to-br from-emerald-50 via-amber-50 to-emerald-50 px-4 sm:px-8 py-4 sm:py-8 border-b-2 sm:border-b-4 border-emerald-600 relative">
+          <div className="bg-gradient-to-br from-emerald-50 via-amber-50 to-emerald-50 px-8 py-8 border-b-4 border-emerald-600 relative">
             {/* Islamic Decorative Pattern */}
-            <div className="absolute top-2 left-3 sm:top-3 sm:left-6 text-3xl sm:text-5xl text-emerald-600/20">☪</div>
-            <div className="absolute top-2 right-3 sm:top-3 sm:right-6 text-3xl sm:text-5xl text-amber-600/20">✦</div>
-            <div className="absolute bottom-2 left-4 sm:bottom-3 sm:left-8">
-              <Star className="h-5 w-5 sm:h-8 sm:w-8 text-emerald-500/20" />
+            <div className="absolute top-3 left-6 text-5xl text-emerald-600/20">☪</div>
+            <div className="absolute top-3 right-6 text-5xl text-amber-600/20">✦</div>
+            <div className="absolute bottom-3 left-8">
+              <Star className="h-8 w-8 text-emerald-500/20" />
             </div>
-            <div className="absolute bottom-2 right-4 sm:bottom-3 sm:right-8">
-              <Star className="h-5 w-5 sm:h-8 sm:w-8 text-amber-500/20" />
+            <div className="absolute bottom-3 right-8">
+              <Star className="h-8 w-8 text-amber-500/20" />
             </div>
             
-            <div className="flex items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
-              <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border border-amber-400 sm:border-2">
-                <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-amber-200" />
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 p-4 rounded-2xl shadow-xl border-2 border-amber-400">
+                <BookOpen className="h-12 w-12 text-amber-200" />
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-emerald-800">استمارة التسجيل</h2>
+              <h2 className="text-4xl font-bold text-emerald-800">استمارة التسجيل</h2>
             </div>
             
-            <div className="bg-emerald-700/10 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-emerald-300">
-              <p className="text-center text-emerald-900 font-bold text-sm sm:text-base md:text-lg px-2">
+            <div className="bg-emerald-700/10 rounded-xl p-4 border border-emerald-300">
+              <p className="text-center text-emerald-900 font-bold text-lg">
                 يُرجى ملء البيانات التالية للمشاركة في المسابقة المباركة
               </p>
             </div>
-            <div className="w-24 sm:w-40 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-3 sm:mt-4"></div>
+            <div className="w-40 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-4"></div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-10 space-y-4 sm:space-y-6 md:space-y-8 bg-gradient-to-br from-white via-emerald-50/20 to-amber-50/30 relative">
+          <form onSubmit={handleSubmit} className="p-10 space-y-8 bg-gradient-to-br from-white via-emerald-50/20 to-amber-50/30 relative">
             {/* Full Name */}
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="fullName" className="text-base sm:text-lg text-emerald-800 font-bold flex items-center gap-2">
-                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shadow-lg border border-amber-400 sm:border-2 flex-shrink-0">1</span>
+            <div className="space-y-3">
+              <Label htmlFor="fullName" className="text-lg text-emerald-800 font-bold flex items-center gap-2">
+                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">1</span>
                 الاسم الكامل <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -178,15 +178,15 @@ const Index = () => {
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 placeholder="أدخل الاسم الكامل"
-                className="text-base sm:text-lg h-12 sm:h-14 border-2 sm:border-3 border-emerald-300 focus:border-emerald-600 focus:ring-2 sm:focus:ring-4 focus:ring-emerald-200 rounded-lg sm:rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors"
+                className="text-lg h-14 border-3 border-emerald-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors"
                 required
               />
             </div>
 
             {/* Age */}
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="age" className="text-base sm:text-lg text-emerald-800 font-bold flex items-center gap-2">
-                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shadow-lg border border-amber-400 sm:border-2 flex-shrink-0">2</span>
+            <div className="space-y-3">
+              <Label htmlFor="age" className="text-lg text-emerald-800 font-bold flex items-center gap-2">
+                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">2</span>
                 السن <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -197,54 +197,54 @@ const Index = () => {
                 value={formData.age}
                 onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 placeholder="أدخل السن"
-                className="text-base sm:text-lg h-12 sm:h-14 border-2 sm:border-3 border-emerald-300 focus:border-emerald-600 focus:ring-2 sm:focus:ring-4 focus:ring-emerald-200 rounded-lg sm:rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors"
+                className="text-lg h-14 border-3 border-emerald-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors"
                 required
               />
             </div>
 
             {/* Parts Count */}
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="partsCount" className="text-base sm:text-lg text-emerald-800 font-bold flex items-center gap-2">
-                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shadow-lg border border-amber-400 sm:border-2 flex-shrink-0">3</span>
+            <div className="space-y-3">
+              <Label htmlFor="partsCount" className="text-lg text-emerald-800 font-bold flex items-center gap-2">
+                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">3</span>
                 المستوى <span className="text-red-500">*</span>
               </Label>
               <Select value={formData.partsCount} onValueChange={(value) => setFormData({ ...formData, partsCount: value })}>
-                <SelectTrigger className="text-base sm:text-lg h-12 sm:h-14 border-2 sm:border-3 border-emerald-300 focus:border-emerald-600 focus:ring-2 sm:focus:ring-4 focus:ring-emerald-200 rounded-lg sm:rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors">
+                <SelectTrigger className="text-lg h-14 border-3 border-emerald-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors">
                   <SelectValue placeholder="اختر المستوى" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  <SelectItem value="30" className="text-sm sm:text-base">المستوى الأول - القرآن كاملاً (30 جزء)</SelectItem>
-                  <SelectItem value="20" className="text-sm sm:text-base">المستوى الثاني - ثلثي القرآن (20 جزء)</SelectItem>
-                  <SelectItem value="15" className="text-sm sm:text-base">المستوى الثالث - نصف القرآن (15 جزء)</SelectItem>
-                  <SelectItem value="10" className="text-sm sm:text-base">المستوى الرابع - 10 أجزاء</SelectItem>
-                  <SelectItem value="5" className="text-sm sm:text-base">المستوى الخامس - 5 أجزاء</SelectItem>
-                  <SelectItem value="3" className="text-sm sm:text-base">المستوى السادس - 3 أجزاء</SelectItem>
-                  <SelectItem value="1" className="text-sm sm:text-base">المستوى السابع - 1 جزء</SelectItem>
+                  <SelectItem value="30" className="text-lg">المستوى الأول - القرآن كاملاً (30 جزء)</SelectItem>
+                  <SelectItem value="20" className="text-lg">المستوى الثاني - ثلثي القرآن (20 جزء)</SelectItem>
+                  <SelectItem value="15" className="text-lg">المستوى الثالث - نصف القرآن (15 جزء)</SelectItem>
+                  <SelectItem value="10" className="text-lg">المستوى الرابع - 10 أجزاء</SelectItem>
+                  <SelectItem value="5" className="text-lg">المستوى الخامس - 5 أجزاء</SelectItem>
+                  <SelectItem value="3" className="text-lg">المستوى السادس - 3 أجزاء</SelectItem>
+                  <SelectItem value="1" className="text-lg">المستوى السابع - 1 جزء</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Submit Button */}
-            <div className="pt-2 sm:pt-4">
+            <div className="pt-4">
               <Button
                 type="submit"
                 disabled={loading || !registrationOpen}
-                className="w-full h-auto py-4 sm:py-6 text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-600 hover:from-emerald-700 hover:via-emerald-800 hover:to-emerald-700 text-white shadow-2xl transform hover:scale-[1.02] transition-all duration-300 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-18 py-6 text-2xl font-bold bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-600 hover:from-emerald-700 hover:via-emerald-800 hover:to-emerald-700 text-white shadow-2xl transform hover:scale-[1.02] transition-all duration-300 rounded-2xl border-4 border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {!registrationOpen ? (
-                  <span className="flex items-center justify-center gap-2 sm:gap-3">
+                  <span className="flex items-center justify-center gap-3">
                     التسجيل مغلق حالياً
                   </span>
                 ) : loading ? (
-                  <span className="flex items-center justify-center gap-2 sm:gap-3">
-                    <div className="w-5 h-5 sm:w-7 sm:h-7 border-2 sm:border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span className="flex items-center justify-center gap-3">
+                    <div className="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                     جاري الإرسال...
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2 sm:gap-3">
-                    <Star className="h-5 w-5 sm:h-7 sm:w-7 animate-pulse" />
+                  <span className="flex items-center justify-center gap-3">
+                    <Star className="h-7 w-7 animate-pulse" />
                     إرسال الاستمارة
-                    <Star className="h-5 w-5 sm:h-7 sm:w-7 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                    <Star className="h-7 w-7 animate-pulse" style={{ animationDelay: '0.5s' }} />
                   </span>
                 )}
               </Button>
@@ -252,14 +252,14 @@ const Index = () => {
           </form>
 
           {/* Footer Note */}
-          <div className="bg-gradient-to-r from-emerald-100 via-amber-50 to-emerald-100 px-4 sm:px-8 py-4 sm:py-6 border-t-2 sm:border-t-4 border-emerald-600 relative">
-            <div className="absolute top-2 left-3 sm:top-3 sm:left-6 text-2xl sm:text-3xl opacity-30">✦</div>
-            <div className="absolute top-2 right-3 sm:top-3 sm:right-6 text-2xl sm:text-3xl opacity-30">✦</div>
+          <div className="bg-gradient-to-r from-emerald-100 via-amber-50 to-emerald-100 px-8 py-6 border-t-4 border-emerald-600 relative">
+            <div className="absolute top-3 left-6 text-3xl opacity-30">✦</div>
+            <div className="absolute top-3 right-6 text-3xl opacity-30">✦</div>
             <div className="text-center space-y-2">
-              <p className="text-sm sm:text-base text-emerald-800 font-bold px-2">
+              <p className="text-base text-emerald-800 font-bold">
                 🌟 بعد إرسال الاستمارة، سيتم مراجعتها من قِبل المسؤولين عن المسابقة 🌟
               </p>
-              <p className="text-xs sm:text-sm text-emerald-700">
+              <p className="text-sm text-emerald-700">
                 وفقكم الله وسدد خطاكم في حفظ كتابه الكريم
               </p>
             </div>
@@ -267,17 +267,17 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Decorative Islamic Elements - Hidden on mobile */}
-      <div className="hidden sm:block fixed top-20 left-10 text-8xl opacity-10 pointer-events-none animate-pulse">
+      {/* Decorative Islamic Elements */}
+      <div className="fixed top-20 left-10 text-8xl opacity-10 pointer-events-none animate-pulse">
         ☪
       </div>
-      <div className="hidden sm:block fixed bottom-20 right-10 text-8xl opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '1s' }}>
+      <div className="fixed bottom-20 right-10 text-8xl opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '1s' }}>
         ✦
       </div>
-      <div className="hidden sm:block fixed top-1/3 right-20 w-32 h-32 opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}>
+      <div className="fixed top-1/3 right-20 w-32 h-32 opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}>
         <Star className="w-full h-full text-emerald-600" />
       </div>
-      <div className="hidden sm:block fixed bottom-1/3 left-20 w-28 h-28 opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '1.5s' }}>
+      <div className="fixed bottom-1/3 left-20 w-28 h-28 opacity-10 pointer-events-none animate-pulse" style={{ animationDelay: '1.5s' }}>
         <Sparkles className="w-full h-full text-amber-600" />
       </div>
     </div>
