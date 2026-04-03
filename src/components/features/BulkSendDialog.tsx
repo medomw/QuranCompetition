@@ -199,57 +199,81 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     return `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${current.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة.\nإدارة مسابقة قرية الحاج حسن جودة`;
   };
 
-  // Download image helper
-  const downloadImage = (canvas: HTMLCanvasElement, filename: string) => {
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
+  // Merge card canvas + optional form photo into one tall image
+  const buildMergedImage = (): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const cardCanvas = canvasRef.current;
+      if (!cardCanvas) { resolve(null); return; }
+
+      if (!capturedFormImage) {
+        cardCanvas.toBlob(resolve, 'image/png');
+        return;
+      }
+
+      const formImg = new Image();
+      const formUrl = URL.createObjectURL(capturedFormImage);
+      formImg.onload = () => {
+        URL.revokeObjectURL(formUrl);
+        const W = cardCanvas.width;
+        const formH = Math.round((formImg.height / formImg.width) * W);
+        const GAP = 20;
+
+        const merged = document.createElement('canvas');
+        merged.width = W;
+        merged.height = cardCanvas.height + GAP + formH;
+
+        const ctx = merged.getContext('2d')!;
+        ctx.fillStyle = '#064e3b';
+        ctx.fillRect(0, 0, W, merged.height);
+        ctx.drawImage(cardCanvas, 0, 0);
+        ctx.drawImage(formImg, 0, cardCanvas.height + GAP, W, formH);
+
+        merged.toBlob(resolve, 'image/png');
+      };
+      formImg.onerror = () => {
+        URL.revokeObjectURL(formUrl);
+        cardCanvas.toBlob(resolve, 'image/png');
+      };
+      formImg.src = formUrl;
+    });
   };
 
-  // Share
+  // Share: merge both images → single file → share or download
   const handleShare = async () => {
     if (!current?.whatsapp) return;
     setSending(true);
-    const canvas = canvasRef.current;
-    if (!canvas) { setSending(false); return; }
     const message = buildMessage();
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) { setSending(false); return; }
+    const blob = await buildMergedImage();
+    if (!blob) { setSending(false); return; }
 
-      const cardFile = new File([blob], `نتيجة-${current.full_name}.png`, { type: 'image/png' });
-      const filesToShare: File[] = [cardFile];
-      if (capturedFormImage) filesToShare.push(capturedFormImage);
-      const shareData: ShareData = { text: message, files: filesToShare };
+    const filename = capturedFormImage
+      ? `نتيجة-واستمارة-${current.full_name}.png`
+      : `نتيجة-${current.full_name}.png`;
 
-      // Try native share (works on mobile to share directly to WhatsApp)
-      try {
-        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          toast.success('تم مشاركة الصور بنجاح');
-          setSending(false);
-          return;
-        }
-      } catch (err: unknown) {
-        const errorName = (err as Error)?.name;
-        if (errorName === 'AbortError') {
-          setSending(false);
-          return;
-        }
+    const imageFile = new File([blob], filename, { type: 'image/png' });
+    const shareData: ShareData = { text: message, files: [imageFile] };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast.success('تم مشاركة الصورة عبر واتساب بنجاح');
+        setSending(false);
+        return;
       }
+    } catch (err: unknown) {
+      const errorName = (err as Error)?.name;
+      if (errorName === 'AbortError') { setSending(false); return; }
+    }
 
-      // Fallback: auto-download images + open WhatsApp with text
-      downloadImage(canvas, `نتيجة-${current.full_name}.png`);
-      if (capturedFormImage) {
-        const formUrl = URL.createObjectURL(capturedFormImage);
-        const a = document.createElement('a');
-        a.href = formUrl; a.download = `استمارة-${current.full_name}.jpg`; a.click();
-        setTimeout(() => URL.revokeObjectURL(formUrl), 1000);
-      }
-      openWaLink(message);
-      toast.info('تم تنزيل الصور — قم بإرفاقهم يدوياً في واتساب', { duration: 6000 });
-      setSending(false);
-    }, 'image/png');
+    // Fallback: download merged image + open WhatsApp
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    openWaLink(message);
+    toast.info('تم تنزيل الصورة — أرفقها في واتساب يدوياً', { duration: 6000 });
+    setSending(false);
   };
 
   const openWaLink = (message: string) => {
