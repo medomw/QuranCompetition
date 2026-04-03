@@ -84,219 +84,87 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Certificate dimensions: A4 landscape ratio
-    const W = 1122;
-    const H = 794;
+    const W = 900;
+    const H = hasRank ? 560 : 510;
     canvas.width = W;
     canvas.height = H;
 
-    // ── Background: deep black with subtle gradient ──
     const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-    bgGrad.addColorStop(0, '#0a0a0a');
-    bgGrad.addColorStop(0.5, '#111111');
-    bgGrad.addColorStop(1, '#080808');
+    bgGrad.addColorStop(0, '#064e3b');
+    bgGrad.addColorStop(0.45, '#065f46');
+    bgGrad.addColorStop(1, '#1a3a2a');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // ── Outer golden border ──
-    ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 10;
-    ctx.strokeRect(14, 14, W - 28, H - 28);
+    ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 6;
+    ctx.strokeRect(18, 18, W - 36, H - 36);
+    ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 2;
+    ctx.strokeRect(30, 30, W - 60, H - 60);
 
-    // ── Inner golden border ──
-    ctx.strokeStyle = '#E8C96B'; ctx.lineWidth = 2;
-    ctx.strokeRect(26, 26, W - 52, H - 52);
-
-    // ── Third thin border ──
-    ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 1;
-    ctx.strokeRect(34, 34, W - 68, H - 68);
-
-    // ── Corner ornaments ──
-    const drawCornerOrn = (x: number, y: number, flip: boolean) => {
-      ctx.save();
-      ctx.translate(x, y);
-      if (flip) ctx.scale(-1, -1);
-      const g = ctx.createLinearGradient(0, 0, 60, 60);
-      g.addColorStop(0, '#FFD700'); g.addColorStop(1, '#B8860B');
-      ctx.fillStyle = g;
-      ctx.font = '52px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('❧', 30, 30);
-      ctx.restore();
+    const drawStar = (cx: number, cy: number, size: number) => {
+      ctx.save(); ctx.fillStyle = '#D4AF37';
+      ctx.font = `${size}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('✦', cx, cy); ctx.restore();
     };
-    drawCornerOrn(20, 20, false);
-    drawCornerOrn(W - 20, 20, true);
-    drawCornerOrn(20, H - 20, true);
-    drawCornerOrn(W - 20, H - 20, false);
+    drawStar(50, 50, 28); drawStar(W - 50, 50, 28);
+    drawStar(50, H - 50, 28); drawStar(W - 50, H - 50, 28);
 
-    // ── Top golden banner ──
-    const topBanner = ctx.createLinearGradient(0, 50, 0, 130);
-    topBanner.addColorStop(0, '#1a1200');
-    topBanner.addColorStop(0.3, '#3d2900');
-    topBanner.addColorStop(0.7, '#3d2900');
-    topBanner.addColorStop(1, '#1a1200');
-    ctx.fillStyle = topBanner;
-    ctx.fillRect(44, 50, W - 88, 80);
-    ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 1.5;
-    ctx.strokeRect(44, 50, W - 88, 80);
+    ctx.save(); ctx.font = 'bold 28px serif'; ctx.fillStyle = '#FFD700';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('﷽', W / 2, 65); ctx.restore();
 
-    // ── Bismillah in top banner ──
-    ctx.save();
-    const bGrad = ctx.createLinearGradient(W/2 - 100, 0, W/2 + 100, 0);
-    bGrad.addColorStop(0, '#C9A84C'); bGrad.addColorStop(0.5, '#FFD700'); bGrad.addColorStop(1, '#C9A84C');
-    ctx.fillStyle = bGrad;
-    ctx.font = 'bold 38px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('﷽', W / 2, 90);
-    ctx.restore();
+    const divGrad = ctx.createLinearGradient(80, 0, W - 80, 0);
+    divGrad.addColorStop(0, 'transparent'); divGrad.addColorStop(0.5, '#D4AF37'); divGrad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = divGrad; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(80, 90); ctx.lineTo(W - 80, 90); ctx.stroke();
 
-    // ── Central golden divider line ──
-    const mkDivGrad = (y: number) => {
-      const d = ctx.createLinearGradient(60, y, W - 60, y);
-      d.addColorStop(0, 'transparent'); d.addColorStop(0.2, '#C9A84C');
-      d.addColorStop(0.5, '#FFD700'); d.addColorStop(0.8, '#C9A84C'); d.addColorStop(1, 'transparent');
-      return d;
-    };
+    ctx.save(); ctx.font = 'bold 22px serif'; ctx.fillStyle = '#86efac';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('مسابقة القرآن الكريم - قرية الحاج حسن جودة', W / 2, 120); ctx.restore();
 
-    ctx.strokeStyle = mkDivGrad(142); ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(60, 142); ctx.lineTo(W - 60, 142); ctx.stroke();
+    ctx.save(); ctx.font = 'bold 26px serif'; ctx.fillStyle = '#FFD700';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('نتيجة المسابقة', W / 2, 158); ctx.restore();
 
-    // ── Organization title ──
-    ctx.save();
-    const orgGrad = ctx.createLinearGradient(W/2 - 200, 0, W/2 + 200, 0);
-    orgGrad.addColorStop(0, '#C9A84C'); orgGrad.addColorStop(0.5, '#FFD700'); orgGrad.addColorStop(1, '#C9A84C');
-    ctx.fillStyle = orgGrad;
-    ctx.font = 'bold 26px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 8;
-    ctx.fillText('مسابقة القرآن الكريم — قرية الحاج حسن جودة', W / 2, 175);
-    ctx.restore();
+    ctx.strokeStyle = divGrad; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(120, 178); ctx.lineTo(W - 120, 178); ctx.stroke();
 
-    // ── Central rosette / star emblem ──
-    const cx = W / 2, ey = 295;
-    ctx.save();
-    const rGrad = ctx.createRadialGradient(cx, ey, 0, cx, ey, 60);
-    rGrad.addColorStop(0, '#FFD700'); rGrad.addColorStop(0.5, '#C9A84C'); rGrad.addColorStop(1, 'rgba(180,120,0,0)');
-    ctx.fillStyle = rGrad;
-    ctx.beginPath(); ctx.arc(cx, ey, 60, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
-    ctx.stroke();
-    // Star points
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4;
-      const x1 = cx + Math.cos(angle) * 62;
-      const y1 = ey + Math.sin(angle) * 62;
-      const x2 = cx + Math.cos(angle + Math.PI/8) * 48;
-      const y2 = ey + Math.sin(angle + Math.PI/8) * 48;
-      ctx.save(); ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(cx, ey); ctx.lineTo(x1, y1); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx, ey); ctx.lineTo(x2, y2); ctx.stroke();
-      ctx.restore();
-    }
-    ctx.fillStyle = '#0a0a0a';
-    ctx.beginPath(); ctx.arc(cx, ey, 44, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 36px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('★', cx, ey);
-    ctx.restore();
-
-    // ── Certificate title ──
-    ctx.save();
-    const titleGrad = ctx.createLinearGradient(W/2 - 150, 0, W/2 + 150, 0);
-    titleGrad.addColorStop(0, '#C9A84C'); titleGrad.addColorStop(0.5, '#FFFFFF'); titleGrad.addColorStop(1, '#C9A84C');
-    ctx.fillStyle = titleGrad;
-    ctx.font = 'bold 46px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 16;
-    ctx.fillText('شهادة تقدير', W / 2, 375);
-    ctx.restore();
-
-    ctx.strokeStyle = mkDivGrad(410); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(120, 410); ctx.lineTo(W - 120, 410); ctx.stroke();
-
-    // ── Participant info ──
-    const nameLabel = gender === 'male' ? 'المتسابق الكريم' : 'المتسابقة الكريمة';
-    const pronoun = gender === 'male' ? 'له' : 'لها';
-
-    // Presented-to text
-    ctx.save();
-    ctx.fillStyle = '#aaaaaa'; ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(`تُقدَّم هذه الشهادة إلى ${nameLabel}`, W / 2, 440);
-    ctx.restore();
-
-    // Name highlighted
-    ctx.save();
-    const nameGrad = ctx.createLinearGradient(W/2 - 200, 0, W/2 + 200, 0);
-    nameGrad.addColorStop(0, '#C9A84C'); nameGrad.addColorStop(0.5, '#FFD700'); nameGrad.addColorStop(1, '#C9A84C');
-    ctx.fillStyle = nameGrad;
-    ctx.font = 'bold 42px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 10;
-    ctx.fillText(app.full_name, W / 2, 485);
-    ctx.restore();
-
-    // Level line
-    ctx.save();
-    ctx.fillStyle = '#dddddd'; ctx.font = '22px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(`لمشاركته ${pronoun} في مسابقة القرآن الكريم — مستوى: ${levelName}`, W / 2, 524);
-    ctx.restore();
-
-    // Score & Rank pills
-    const pillY = 562;
-    const pillH = 38;
-    const drawPill = (text: string, px: number, pw: number, color: string) => {
-      ctx.save();
-      const pg = ctx.createLinearGradient(px, pillY, px, pillY + pillH);
-      pg.addColorStop(0, color + '44'); pg.addColorStop(1, color + '22');
-      ctx.fillStyle = pg;
-      ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(px - pw/2, pillY - pillH/2, pw, pillH, 8);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = color; ctx.font = 'bold 19px serif';
+    const drawRow = (icon: string, label: string, value: string, y: number, vc = '#FFD700') => {
+      ctx.save(); ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(icon, W - 80, y); ctx.restore();
+      ctx.save(); ctx.font = 'bold 18px serif'; ctx.fillStyle = '#86efac';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(label + ':', W - 108, y); ctx.restore();
+      ctx.save(); ctx.font = 'bold 22px serif'; ctx.fillStyle = vc;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(text, px, pillY);
-      ctx.restore();
+      ctx.fillText(value, W / 2 - 60, y); ctx.restore();
     };
 
-    if (score && hasRank) {
-      drawPill(`الدرجة: ${score} / 100`, W / 2 - 180, 300, '#FFD700');
-      drawPill(`المركز: ${rank}`, W / 2 + 180, 300, '#C9A84C');
-    } else if (score) {
-      drawPill(`الدرجة: ${score} / 100`, W / 2, 340, '#FFD700');
-    } else if (hasRank) {
-      drawPill(`المركز: ${rank}`, W / 2, 340, '#C9A84C');
+    const nameLabel = gender === 'male' ? 'المتسابق الكريم' : 'المتسابقة الكريمة';
+    drawRow('👤', nameLabel, app.full_name, 220, '#ffffff');
+    drawRow('📖', 'المستوى', levelName, 270, '#86efac');
+    if (hasRank) {
+      drawRow('🏅', 'المركز', `المركز ${rank}`, 320, '#FFD700');
+      drawRow('📊', 'الدرجة', score ? `${score} / 100` : '—', 370, '#fbbf24');
+    } else {
+      drawRow('📊', 'الدرجة', score ? `${score} / 100` : '—', 320, '#fbbf24');
     }
 
-    // ── Bottom golden banner ──
-    ctx.strokeStyle = mkDivGrad(600); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(60, 600); ctx.lineTo(W - 60, 600); ctx.stroke();
+    const bottomY = hasRank ? 410 : 360;
+    ctx.strokeStyle = divGrad; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(80, bottomY); ctx.lineTo(W - 80, bottomY); ctx.stroke();
 
-    const botBanner = ctx.createLinearGradient(0, 618, 0, 680);
-    botBanner.addColorStop(0, '#1a1200'); botBanner.addColorStop(0.5, '#3d2900'); botBanner.addColorStop(1, '#1a1200');
-    ctx.fillStyle = botBanner;
-    ctx.fillRect(44, 618, W - 88, 62);
-    ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 1;
-    ctx.strokeRect(44, 618, W - 88, 62);
+    ctx.save(); ctx.font = 'italic 17px serif'; ctx.fillStyle = '#86efac';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('جزاكم الله خيرًا على مشاركتكم المباركة وبارك الله في جهودكم', W / 2, bottomY + 30); ctx.restore();
 
-    // Quranic verse in bottom banner
-    ctx.save();
-    const vGrad = ctx.createLinearGradient(W/2 - 150, 0, W/2 + 150, 0);
-    vGrad.addColorStop(0, '#C9A84C'); vGrad.addColorStop(0.5, '#FFD700'); vGrad.addColorStop(1, '#C9A84C');
-    ctx.fillStyle = vGrad;
-    ctx.font = 'bold 21px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('"وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا" — سورة المزمل', W / 2, 636);
-    ctx.restore();
+    ctx.save(); ctx.font = '44px serif'; ctx.fillStyle = 'rgba(212,175,55,0.2)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('☪', 120, H / 2); ctx.fillText('☪', W - 120, H / 2); ctx.restore();
 
-    ctx.save();
-    ctx.fillStyle = '#888888'; ctx.font = '15px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('إدارة مسابقة قرية الحاج حسن جودة', W / 2, 662);
-    ctx.restore();
-
-    // ── Side decorative Islamic stars ──
-    ['right', 'left'].forEach((side) => {
-      const sx = side === 'right' ? 100 : W - 100;
-      ctx.save();
-      ctx.font = '64px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(201,168,76,0.12)';
-      ctx.fillText('✦', sx, H / 2 - 60);
-      ctx.fillStyle = 'rgba(201,168,76,0.08)';
-      ctx.fillText('✦', sx, H / 2 + 60);
-      ctx.restore();
-    });
+    ctx.save(); ctx.font = 'bold 15px serif'; ctx.fillStyle = '#6ee7b7';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('إدارة مسابقة قرية الحاج حسن جودة', W / 2, H - 45); ctx.restore();
 
     setImageReady(true);
   }, [app, score, rank, gender, levelName, hasRank]);
