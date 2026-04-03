@@ -199,6 +199,13 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     return `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${current.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة.\nإدارة مسابقة قرية الحاج حسن جودة`;
   };
 
+  // Download image helper
+  const downloadImage = (canvas: HTMLCanvasElement, filename: string) => {
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+  };
+
   // Share
   const handleShare = async () => {
     if (!current?.whatsapp) return;
@@ -207,29 +214,42 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     if (!canvas) { setSending(false); return; }
     const message = buildMessage();
 
-    if (navigator.canShare) {
-      canvas.toBlob(async (blob) => {
-        if (!blob) { setSending(false); return; }
-        const cardFile = new File([blob], `نتيجة-${current.full_name}.png`, { type: 'image/png' });
-        const filesToShare: File[] = [cardFile];
-        if (capturedFormImage) filesToShare.push(capturedFormImage);
-        const shareData: ShareData = { text: message, files: filesToShare };
-        if (navigator.canShare(shareData)) {
-          try {
-            await navigator.share(shareData);
-            toast.success('تم الإرسال بنجاح');
-          } catch {
-            openWaLink(message);
-          }
-        } else {
-          openWaLink(message);
+    canvas.toBlob(async (blob) => {
+      if (!blob) { setSending(false); return; }
+
+      const cardFile = new File([blob], `نتيجة-${current.full_name}.png`, { type: 'image/png' });
+      const filesToShare: File[] = [cardFile];
+      if (capturedFormImage) filesToShare.push(capturedFormImage);
+      const shareData: ShareData = { text: message, files: filesToShare };
+
+      // Try native share (works on mobile to share directly to WhatsApp)
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          toast.success('تم مشاركة الصور بنجاح');
+          setSending(false);
+          return;
         }
-        setSending(false);
-      }, 'image/png');
-    } else {
+      } catch (err: unknown) {
+        const errorName = (err as Error)?.name;
+        if (errorName === 'AbortError') {
+          setSending(false);
+          return;
+        }
+      }
+
+      // Fallback: auto-download images + open WhatsApp with text
+      downloadImage(canvas, `نتيجة-${current.full_name}.png`);
+      if (capturedFormImage) {
+        const formUrl = URL.createObjectURL(capturedFormImage);
+        const a = document.createElement('a');
+        a.href = formUrl; a.download = `استمارة-${current.full_name}.jpg`; a.click();
+        setTimeout(() => URL.revokeObjectURL(formUrl), 1000);
+      }
       openWaLink(message);
+      toast.info('تم تنزيل الصور — قم بإرفاقهم يدوياً في واتساب', { duration: 6000 });
       setSending(false);
-    }
+    }, 'image/png');
   };
 
   const openWaLink = (message: string) => {
