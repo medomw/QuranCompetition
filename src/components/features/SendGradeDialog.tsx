@@ -205,17 +205,24 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     });
   };
 
-  // Build WhatsApp message text (with optional image URL)
+  // Build WhatsApp message — motivational only, no personal data
   const buildMessage = (imageUrl?: string, formUrl?: string) => {
-    const pronoun = gender === 'male' ? 'الطالب الكريم' : 'الطالبة الكريمة';
-    const rankLine = hasRank ? `🏅 المركز: ${rank}` : '';
-    const scoreLine = score ? `📊 الدرجة: ${score} / 100` : '';
-    const details = [rankLine, scoreLine].filter(Boolean).join('\n');
+    const addDownload = (url: string, name: string) =>
+      `${url}?download=${encodeURIComponent(name)}`;
 
-    let msg = `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${app?.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة،\nوبارك الله في جهودكم في حفظ كتابه الكريم.\n\nإدارة مسابقة قرية الحاج حسن جودة`;
+    let msg = `السلام عليكم ورحمة الله وبركاته 🌙
 
-    if (imageUrl) msg += `\n\n🖼️ بطاقة النتيجة:\n${imageUrl}`;
-    if (formUrl)  msg += `\n\n📄 صورة الاستمارة:\n${formUrl}`;
+نبشّركم بنتيجة مسابقة القرآن الكريم
+قرية الحاج حسن جودة 📖
+
+جزاكم الله خيرًا على مشاركتكم المباركة، وبارك الله في جهودكم في حفظ كتابه الكريم 🤲
+
+"وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا"
+
+إدارة مسابقة قرية الحاج حسن جودة`;
+
+    if (imageUrl) msg += `\n\n🖼️ بطاقة النتيجة (اضغط لمشاهدتها وحفظها):\n${addDownload(imageUrl, 'نتيجة_المسابقة.png')}`;
+    if (formUrl)  msg += `\n\n📄 صورة الاستمارة (اضغط لمشاهدتها وحفظها):\n${addDownload(formUrl, 'استمارة_المسابقة.png')}`;
 
     return msg;
   };

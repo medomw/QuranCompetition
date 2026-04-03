@@ -195,18 +195,23 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
 
   const buildMessage = (cardUrl?: string, formUrl?: string) => {
     if (!current) return '';
-    const g = getGrade(current.id);
-    const levelName = getLevelName(current.parts_count);
-    const pronoun = g.gender === 'male' ? 'الطالب الكريم' : 'الطالبة الكريمة';
-    const hasRank = g.rank && g.rank !== 'none';
-    const rankLine = hasRank ? `🏅 المركز: ${g.rank}` : '';
-    const scoreLine = g.score ? `📊 الدرجة: ${g.score} / 100` : '';
-    const details = [rankLine, scoreLine].filter(Boolean).join('\n');
 
-    let msg = `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${current.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة.\nإدارة مسابقة قرية الحاج حسن جودة`;
+    const addDownload = (url: string, name: string) =>
+      `${url}?download=${encodeURIComponent(name)}`;
 
-    if (cardUrl) msg += `\n\n🖼️ بطاقة النتيجة:\n${cardUrl}`;
-    if (formUrl)  msg += `\n\n📄 صورة الاستمارة:\n${formUrl}`;
+    let msg = `السلام عليكم ورحمة الله وبركاته 🌙
+
+نبشّركم بنتيجة مسابقة القرآن الكريم
+قرية الحاج حسن جودة 📖
+
+جزاكم الله خيرًا على مشاركتكم المباركة، وبارك الله في جهودكم في حفظ كتابه الكريم 🤲
+
+"وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا"
+
+إدارة مسابقة قرية الحاج حسن جودة`;
+
+    if (cardUrl) msg += `\n\n🖼️ بطاقة النتيجة (اضغط لمشاهدتها وحفظها):\n${addDownload(cardUrl, 'نتيجة_المسابقة.png')}`;
+    if (formUrl)  msg += `\n\n📄 صورة الاستمارة (اضغط لمشاهدتها وحفظها):\n${addDownload(formUrl, 'استمارة_المسابقة.png')}`;
 
     return msg;
   };
