@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, X, Users, Camera, Share2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, X, Users, Camera, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface BulkSendDialogProps {
   applications: Application[];
@@ -56,6 +57,17 @@ const RANK_OPTIONS = [
   { value: 'الثلاثون', label: 'الثلاثون' },
 ];
 
+// Upload blob to Supabase Storage, return public URL
+const uploadToStorage = async (blob: Blob, path: string): Promise<string | null> => {
+  const { error } = await supabase.storage.from('results').upload(path, blob, {
+    contentType: 'image/png',
+    upsert: true,
+  });
+  if (error) { console.error('Storage upload error:', error); return null; }
+  const { data } = supabase.storage.from('results').getPublicUrl(path);
+  return data.publicUrl;
+};
+
 const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendDialogProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -91,12 +103,9 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     const g = getGrade(current.id);
     const hasRank = g.rank && g.rank !== 'none';
     const H = hasRank ? 560 : 510;
-    canvas.width = W;
-    canvas.height = H;
-
+    canvas.width = W; canvas.height = H;
     const levelName = getLevelName(current.parts_count);
 
-    // Background
     const bgGrad = ctx.createLinearGradient(0, 0, W, H);
     bgGrad.addColorStop(0, '#064e3b'); bgGrad.addColorStop(0.45, '#065f46'); bgGrad.addColorStop(1, '#1a3a2a');
     ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H);
@@ -178,15 +187,13 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     if (open) { setCurrentIdx(0); setGrades({}); setCapturedFormImage(null); }
   }, [open]);
 
-  // Camera capture
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) { setCapturedFormImage(file); toast.success('تم التقاط صورة الاستمارة'); }
     e.target.value = '';
   };
 
-  // Build message
-  const buildMessage = () => {
+  const buildMessage = (cardUrl?: string, formUrl?: string) => {
     if (!current) return '';
     const g = getGrade(current.id);
     const levelName = getLevelName(current.parts_count);
@@ -196,91 +203,54 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
     const scoreLine = g.score ? `📊 الدرجة: ${g.score} / 100` : '';
     const details = [rankLine, scoreLine].filter(Boolean).join('\n');
 
-    return `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${current.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة.\nإدارة مسابقة قرية الحاج حسن جودة`;
+    let msg = `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${current.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة.\nإدارة مسابقة قرية الحاج حسن جودة`;
+
+    if (cardUrl) msg += `\n\n🖼️ بطاقة النتيجة:\n${cardUrl}`;
+    if (formUrl)  msg += `\n\n📄 صورة الاستمارة:\n${formUrl}`;
+
+    return msg;
   };
 
-  // Merge card canvas + optional form photo into one tall image
-  const buildMergedImage = (): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      const cardCanvas = canvasRef.current;
-      if (!cardCanvas) { resolve(null); return; }
-
-      if (!capturedFormImage) {
-        cardCanvas.toBlob(resolve, 'image/png');
-        return;
-      }
-
-      const formImg = new Image();
-      const formUrl = URL.createObjectURL(capturedFormImage);
-      formImg.onload = () => {
-        URL.revokeObjectURL(formUrl);
-        const W = cardCanvas.width;
-        const formH = Math.round((formImg.height / formImg.width) * W);
-        const GAP = 20;
-
-        const merged = document.createElement('canvas');
-        merged.width = W;
-        merged.height = cardCanvas.height + GAP + formH;
-
-        const ctx = merged.getContext('2d')!;
-        ctx.fillStyle = '#064e3b';
-        ctx.fillRect(0, 0, W, merged.height);
-        ctx.drawImage(cardCanvas, 0, 0);
-        ctx.drawImage(formImg, 0, cardCanvas.height + GAP, W, formH);
-
-        merged.toBlob(resolve, 'image/png');
-      };
-      formImg.onerror = () => {
-        URL.revokeObjectURL(formUrl);
-        cardCanvas.toBlob(resolve, 'image/png');
-      };
-      formImg.src = formUrl;
-    });
-  };
-
-  // Share: merge both images → single file → share or download
-  const handleShare = async () => {
+  const handleSend = async () => {
     if (!current?.whatsapp) return;
     setSending(true);
-    const message = buildMessage();
+    toast.info('جاري رفع الصور...');
 
-    const blob = await buildMergedImage();
-    if (!blob) { setSending(false); return; }
+    // 1. Card blob → upload
+    const canvas = canvasRef.current;
+    const cardBlob: Blob | null = canvas
+      ? await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+      : null;
 
-    const filename = capturedFormImage
-      ? `نتيجة-واستمارة-${current.full_name}.png`
-      : `نتيجة-${current.full_name}.png`;
-
-    const imageFile = new File([blob], filename, { type: 'image/png' });
-    const shareData: ShareData = { text: message, files: [imageFile] };
-
-    try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('تم مشاركة الصورة عبر واتساب بنجاح');
-        setSending(false);
-        return;
-      }
-    } catch (err: unknown) {
-      const errorName = (err as Error)?.name;
-      if (errorName === 'AbortError') { setSending(false); return; }
+    let cardUrl: string | null = null;
+    if (cardBlob) {
+      cardUrl = await uploadToStorage(cardBlob, `cards/${Date.now()}_${current.id}.png`);
+      if (!cardUrl) toast.error('تعذّر رفع بطاقة النتيجة');
     }
 
-    // Fallback: download merged image + open WhatsApp
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    openWaLink(message);
-    toast.info('تم تنزيل الصورة — أرفقها في واتساب يدوياً', { duration: 6000 });
-    setSending(false);
-  };
+    // 2. Form photo → upload
+    let formUrl: string | null = null;
+    if (capturedFormImage) {
+      const formPath = `forms/${Date.now()}_${current.id}_form.png`;
+      const { error } = await supabase.storage.from('results').upload(formPath, capturedFormImage, {
+        contentType: capturedFormImage.type, upsert: true,
+      });
+      if (!error) {
+        const { data } = supabase.storage.from('results').getPublicUrl(formPath);
+        formUrl = data.publicUrl;
+      } else {
+        toast.error('تعذّر رفع صورة الاستمارة');
+      }
+    }
 
-  const openWaLink = (message: string) => {
-    if (!current?.whatsapp) return;
-    const phone = current.whatsapp.replace(/[^0-9]/g, '');
+    // 3. Open WhatsApp
+    const message = buildMessage(cardUrl ?? undefined, formUrl ?? undefined);
+    const phone = current.whatsapp!.replace(/[^0-9]/g, '');
     const intlPhone = phone.startsWith('0') ? '2' + phone : phone;
     window.open(`https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`, '_blank');
+
+    toast.success('تم فتح واتساب بالرسالة والروابط');
+    setSending(false);
   };
 
   if (withWhatsApp.length === 0) {
@@ -380,6 +350,11 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
             </div>
           )}
 
+          {/* How it works */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-800 space-y-0.5">
+            <p className="font-bold">⚙️ آلية الإرسال: الصور تُرفع إلى الخادم ويُرسل رابطها في الرسالة</p>
+          </div>
+
           {/* Actions */}
           <div className="grid grid-cols-3 gap-3">
             <Button onClick={() => cameraInputRef.current?.click()}
@@ -387,25 +362,17 @@ const BulkSendDialog = ({ applications, open, onClose, getLevelName }: BulkSendD
               <Camera className="h-4 w-4" />
               {capturedFormImage ? 'إعادة التصوير' : 'تصوير الاستمارة'}
             </Button>
-            <Button onClick={handleShare} disabled={!imageReady || sending}
+            <Button onClick={handleSend} disabled={!imageReady || sending}
               className="bg-green-600 hover:bg-green-700 gap-2">
-              {sending
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <Share2 className="h-4 w-4" />
-              }
-              إرسال واتساب
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {sending ? 'جاري الرفع...' : 'إرسال واتساب'}
             </Button>
             <Button onClick={onClose} variant="outline" className="gap-2 border-2">
               <X className="h-4 w-4" />إغلاق
             </Button>
           </div>
-
-          <p className="text-xs text-slate-500 text-center">
-            💡 صوّر الاستمارة بالكاميرا ثم اضغط إرسال واتساب — سيتم مشاركة الصورتين معاً تلقائياً
-          </p>
         </div>
 
-        {/* Hidden camera input */}
         <input ref={cameraInputRef} type="file" accept="image/*" capture="environment"
           onChange={handleCameraCapture} className="hidden" />
       </DialogContent>

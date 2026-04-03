@@ -6,14 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { MessageCircle, Send, Camera, X, Share2 } from 'lucide-react';
+import { MessageCircle, Send, Camera, X, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface SendGradeDialogProps {
   app: Application | null;
   open: boolean;
   onClose: () => void;
   getLevelName: (parts: number) => string;
-  printUrl?: string;
 }
 
 const RANK_OPTIONS = [
@@ -50,6 +50,21 @@ const RANK_OPTIONS = [
   { value: 'الثلاثون', label: 'الثلاثون' },
 ];
 
+// Upload blob to Supabase Storage and return public URL
+const uploadToStorage = async (blob: Blob, filename: string): Promise<string | null> => {
+  const path = `cards/${Date.now()}_${filename}`;
+  const { error } = await supabase.storage.from('results').upload(path, blob, {
+    contentType: 'image/png',
+    upsert: true,
+  });
+  if (error) {
+    console.error('Storage upload error:', error);
+    return null;
+  }
+  const { data } = supabase.storage.from('results').getPublicUrl(path);
+  return data.publicUrl;
+};
+
 const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -74,7 +89,6 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     canvas.width = W;
     canvas.height = H;
 
-    // Background gradient
     const bgGrad = ctx.createLinearGradient(0, 0, W, H);
     bgGrad.addColorStop(0, '#064e3b');
     bgGrad.addColorStop(0.45, '#065f46');
@@ -82,13 +96,11 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // Borders
     ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 6;
     ctx.strokeRect(18, 18, W - 36, H - 36);
     ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 2;
     ctx.strokeRect(30, 30, W - 60, H - 60);
 
-    // Corner stars
     const drawStar = (cx: number, cy: number, size: number) => {
       ctx.save(); ctx.fillStyle = '#D4AF37';
       ctx.font = `${size}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -97,18 +109,15 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     drawStar(50, 50, 28); drawStar(W - 50, 50, 28);
     drawStar(50, H - 50, 28); drawStar(W - 50, H - 50, 28);
 
-    // Bismillah
     ctx.save(); ctx.font = 'bold 28px serif'; ctx.fillStyle = '#FFD700';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('﷽', W / 2, 65); ctx.restore();
 
-    // Divider
     const divGrad = ctx.createLinearGradient(80, 0, W - 80, 0);
     divGrad.addColorStop(0, 'transparent'); divGrad.addColorStop(0.5, '#D4AF37'); divGrad.addColorStop(1, 'transparent');
     ctx.strokeStyle = divGrad; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(80, 90); ctx.lineTo(W - 80, 90); ctx.stroke();
 
-    // Title
     ctx.save(); ctx.font = 'bold 22px serif'; ctx.fillStyle = '#86efac';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('مسابقة القرآن الكريم - قرية الحاج حسن جودة', W / 2, 120); ctx.restore();
@@ -120,7 +129,6 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     ctx.strokeStyle = divGrad; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(120, 178); ctx.lineTo(W - 120, 178); ctx.stroke();
 
-    // Data rows
     const drawRow = (icon: string, label: string, value: string, y: number, vc = '#FFD700') => {
       ctx.save(); ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(icon, W - 80, y); ctx.restore();
@@ -179,117 +187,81 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
     }
   }, [open, app]);
 
-  // Camera capture handler
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setCapturedFormImage(file);
       toast.success('تم التقاط صورة الاستمارة بنجاح');
     }
-    // Reset input so same file can be recaptured
     e.target.value = '';
   };
 
-  // Build WhatsApp message
-  const buildMessage = () => {
+  // Canvas → Blob
+  const getCardBlob = (): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const canvas = canvasRef.current;
+      if (!canvas) { resolve(null); return; }
+      canvas.toBlob(resolve, 'image/png');
+    });
+  };
+
+  // Build WhatsApp message text (with optional image URL)
+  const buildMessage = (imageUrl?: string, formUrl?: string) => {
     const pronoun = gender === 'male' ? 'الطالب الكريم' : 'الطالبة الكريمة';
     const rankLine = hasRank ? `🏅 المركز: ${rank}` : '';
     const scoreLine = score ? `📊 الدرجة: ${score} / 100` : '';
     const details = [rankLine, scoreLine].filter(Boolean).join('\n');
 
-    return `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${app?.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة،\nوبارك الله في جهودكم في حفظ كتابه الكريم.\n\nإدارة مسابقة قرية الحاج حسن جودة`;
+    let msg = `السلام عليكم ورحمة الله وبركاته\n\n${pronoun}: ${app?.full_name}\n\nيسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:\n\n📖 المستوى: ${levelName}\n${details}\n\nجزاكم الله خيرًا على مشاركتكم المباركة،\nوبارك الله في جهودكم في حفظ كتابه الكريم.\n\nإدارة مسابقة قرية الحاج حسن جودة`;
+
+    if (imageUrl) msg += `\n\n🖼️ بطاقة النتيجة:\n${imageUrl}`;
+    if (formUrl)  msg += `\n\n📄 صورة الاستمارة:\n${formUrl}`;
+
+    return msg;
   };
 
-  // Merge card canvas + optional form photo into one tall image
-  const buildMergedImage = (): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      const cardCanvas = canvasRef.current;
-      if (!cardCanvas) { resolve(null); return; }
-
-      if (!capturedFormImage) {
-        // No form photo — just use card canvas directly
-        cardCanvas.toBlob(resolve, 'image/png');
-        return;
-      }
-
-      const formImg = new Image();
-      const formUrl = URL.createObjectURL(capturedFormImage);
-      formImg.onload = () => {
-        URL.revokeObjectURL(formUrl);
-        const W = cardCanvas.width;
-        const formH = Math.round((formImg.height / formImg.width) * W);
-        const GAP = 20;
-
-        const merged = document.createElement('canvas');
-        merged.width = W;
-        merged.height = cardCanvas.height + GAP + formH;
-
-        const ctx = merged.getContext('2d')!;
-        // Dark separator background
-        ctx.fillStyle = '#064e3b';
-        ctx.fillRect(0, 0, W, merged.height);
-
-        ctx.drawImage(cardCanvas, 0, 0);
-        ctx.drawImage(formImg, 0, cardCanvas.height + GAP, W, formH);
-
-        merged.toBlob(resolve, 'image/png');
-      };
-      formImg.onerror = () => {
-        URL.revokeObjectURL(formUrl);
-        cardCanvas.toBlob(resolve, 'image/png');
-      };
-      formImg.src = formUrl;
-    });
-  };
-
-  // Send: merge both images → single file → share or download
-  const handleShare = async () => {
+  const handleSend = async () => {
     if (!app?.whatsapp) {
       toast.error('لا يوجد رقم واتساب لهذا المتسابق');
       return;
     }
+    if (!imageReady) return;
 
     setSending(true);
-    const message = buildMessage();
+    toast.info('جاري رفع الصور...');
 
-    const blob = await buildMergedImage();
-    if (!blob) { setSending(false); return; }
-
-    const filename = capturedFormImage
-      ? `نتيجة-واستمارة-${app?.full_name}.png`
-      : `نتيجة-${app?.full_name}.png`;
-
-    const imageFile = new File([blob], filename, { type: 'image/png' });
-    const shareData: ShareData = { text: message, files: [imageFile] };
-
-    // Try native share (single file — works on mobile)
-    try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('تم مشاركة الصورة بنجاح عبر واتساب');
-        setSending(false);
-        return;
-      }
-    } catch (err: unknown) {
-      const errorName = (err as Error)?.name;
-      if (errorName === 'AbortError') { setSending(false); return; }
+    // 1. Upload card image
+    const cardBlob = await getCardBlob();
+    let cardUrl: string | null = null;
+    if (cardBlob) {
+      cardUrl = await uploadToStorage(cardBlob, `${app.id}_card.png`);
+      if (!cardUrl) toast.error('تعذّر رفع بطاقة النتيجة');
     }
 
-    // Fallback: download the merged image + open WhatsApp text link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    openWaLink(message);
-    toast.info('تم تنزيل الصورة — أرفقها في واتساب يدوياً', { duration: 6000 });
-    setSending(false);
-  };
+    // 2. Upload form photo if captured
+    let formUrl: string | null = null;
+    if (capturedFormImage) {
+      const formPath = `forms/${Date.now()}_${app.id}_form.png`;
+      const { error: formErr } = await supabase.storage.from('results').upload(formPath, capturedFormImage, {
+        contentType: capturedFormImage.type,
+        upsert: true,
+      });
+      if (!formErr) {
+        const { data } = supabase.storage.from('results').getPublicUrl(formPath);
+        formUrl = data.publicUrl;
+      } else {
+        toast.error('تعذّر رفع صورة الاستمارة');
+      }
+    }
 
-  const openWaLink = (message: string) => {
-    if (!app?.whatsapp) return;
+    // 3. Open WhatsApp with URLs in the message
+    const message = buildMessage(cardUrl ?? undefined, formUrl ?? undefined);
     const phone = app.whatsapp.replace(/[^0-9]/g, '');
     const intlPhone = phone.startsWith('0') ? '2' + phone : phone;
     window.open(`https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`, '_blank');
+
+    toast.success('تم فتح واتساب بالرسالة والروابط');
+    setSending(false);
   };
 
   if (!app) return null;
@@ -307,7 +279,6 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
         <div className="space-y-5 py-2">
           {/* Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Score */}
             <div className="space-y-1">
               <Label className="text-sm font-bold text-slate-700">الدرجة (من 100)</Label>
               <Input
@@ -318,7 +289,6 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
               />
             </div>
 
-            {/* Rank dropdown */}
             <div className="space-y-1">
               <Label className="text-sm font-bold text-slate-700">المركز</Label>
               <Select value={rank} onValueChange={setRank}>
@@ -333,7 +303,6 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
               </Select>
             </div>
 
-            {/* Gender */}
             <div className="space-y-1">
               <Label className="text-sm font-bold text-slate-700">النوع</Label>
               <div className="flex gap-2 h-11">
@@ -362,14 +331,20 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
           {capturedFormImage && (
             <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
               <Camera className="h-4 w-4 shrink-0" />
-              <span className="flex-1">تم التقاط الاستمارة: <strong>{capturedFormImage.name}</strong></span>
+              <span className="flex-1">استمارة ملتقطة: <strong>{capturedFormImage.name}</strong></span>
               <button onClick={() => setCapturedFormImage(null)} className="text-blue-500 hover:text-blue-700 text-xs underline">إزالة</button>
             </div>
           )}
 
+          {/* How it works note */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 space-y-1">
+            <p className="font-bold">⚙️ آلية الإرسال:</p>
+            <p>١. يتم رفع الصور تلقائياً إلى الخادم وتحويلها إلى روابط</p>
+            <p>٢. تُضاف الروابط داخل رسالة واتساب — المستقبل يضغط الرابط لمشاهدة الصورة</p>
+          </div>
+
           {/* Action buttons */}
           <div className="grid grid-cols-3 gap-3">
-            {/* Camera capture */}
             <Button
               onClick={() => cameraInputRef.current?.click()}
               className="bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center gap-1 h-auto py-3"
@@ -378,21 +353,18 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
               <span className="text-xs">{capturedFormImage ? 'إعادة التصوير' : 'تصوير الاستمارة'}</span>
             </Button>
 
-            {/* Share / Send */}
             <Button
-              onClick={handleShare}
+              onClick={handleSend}
               disabled={!app.whatsapp || !imageReady || sending}
               className="bg-green-600 hover:bg-green-700 text-white flex flex-col items-center gap-1 h-auto py-3"
-              title={app.whatsapp ? '' : 'لا يوجد رقم واتساب'}
             >
               {sending
-                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <Share2 className="h-5 w-5" />
+                ? <Loader2 className="h-5 w-5 animate-spin" />
+                : <Send className="h-5 w-5" />
               }
-              <span className="text-xs">إرسال واتساب</span>
+              <span className="text-xs">{sending ? 'جاري الرفع...' : 'إرسال واتساب'}</span>
             </Button>
 
-            {/* Close */}
             <Button
               onClick={onClose}
               variant="outline"
@@ -403,20 +375,13 @@ const SendGradeDialog = ({ app, open, onClose, getLevelName }: SendGradeDialogPr
             </Button>
           </div>
 
-          {/* Tips */}
           {!app.whatsapp && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 text-center">
               ⚠️ هذا المتسابق لم يُسجّل رقم واتساب
             </div>
           )}
-          {app.whatsapp && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 text-center">
-              💡 اضغط "تصوير الاستمارة" لالتقاط صورة بالكاميرا، ثم "إرسال واتساب" لإرسال كل شيء دفعةً واحدة
-            </div>
-          )}
         </div>
 
-        {/* Hidden camera input */}
         <input
           ref={cameraInputRef}
           type="file"
