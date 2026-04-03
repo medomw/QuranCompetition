@@ -6,7 +6,9 @@ import { Application, Settings } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
+import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award, ChevronDown, ChevronUp, MessageCircle, SendHorizonal } from 'lucide-react';
+import SendGradeDialog from '@/components/features/SendGradeDialog';
+import BulkSendDialog from '@/components/features/BulkSendDialog';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ const AdminDashboard = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [sendGradeApp, setSendGradeApp] = useState<Application | null>(null);
+  const [bulkSendOpen, setBulkSendOpen] = useState(false);
   const [expandedLevels, setExpandedLevels] = useState<{ [key: number]: boolean }>({
     30: true, 20: true, 15: true, 10: true, 5: true, 3: true, 1: true
   });
@@ -166,31 +170,7 @@ const AdminDashboard = () => {
   };
 
   const handleSendGrade = (app: Application) => {
-    const level = getLevelName(app.parts_count);
-    const rankText = app.rank ? `المركز: ${app.rank}` : 'لم يتم تحديد المركز بعد';
-    const message = `السلام عليكم ورحمة الله وبركاته
-
-الطالب/ة الكريم/ة: ${app.full_name}
-
-يسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:
-
-🏅 ${rankText}
-📖 المستوى: ${level}
-
-جزاكم الله خيرًا على مشاركتكم المباركة،
-وبارك الله في جهودكم في حفظ كتابه الكريم.
-
-إدارة مسابقة قرية الحاج حسن جودة`;
-
-    const phone = app.whatsapp?.replace(/[^0-9]/g, '') || '';
-    if (!phone) {
-      toast.error('لم يسجل هذا المتسابق رقم واتساب');
-      return;
-    }
-    // تحويل الرقم المصري إلى صيغة دولية إن لزم
-    const intlPhone = phone.startsWith('0') ? '2' + phone : phone;
-    const url = `https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    setSendGradeApp(app);
   };
 
   const handleDelete = async () => {
@@ -316,6 +296,14 @@ const AdminDashboard = () => {
                   )}
                 </Button>
               )}
+              <Button
+                onClick={() => setBulkSendOpen(true)}
+                variant="outline"
+                className="bg-green-600 text-white border-green-500 hover:bg-green-700"
+              >
+                <SendHorizonal className="h-4 w-4 ml-2" />
+                إرسال واتساب للكل
+              </Button>
               <Button
                 onClick={fetchApplications}
                 variant="outline"
@@ -575,6 +563,23 @@ const AdminDashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Send Grade Dialog */}
+      <SendGradeDialog
+        app={sendGradeApp}
+        open={!!sendGradeApp}
+        onClose={() => setSendGradeApp(null)}
+        getLevelName={getLevelName}
+        printUrl={sendGradeApp ? `/admin/print/${sendGradeApp.id}` : undefined}
+      />
+
+      {/* Bulk Send Dialog */}
+      <BulkSendDialog
+        applications={applications}
+        open={bulkSendOpen}
+        onClose={() => setBulkSendOpen(false)}
+        getLevelName={getLevelName}
+      />
 
       {/* Delete Level Confirmation Dialog */}
       <Dialog open={deleteLevelDialogOpen} onOpenChange={setDeleteLevelDialogOpen}>
