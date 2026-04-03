@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { BookOpen, Star, Sparkles, ArrowRight } from 'lucide-react';
+import { BookOpen, Star, Sparkles, ArrowRight, Phone } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,6 +16,7 @@ const Index = () => {
     fullName: '',
     age: '',
     partsCount: '',
+    whatsapp: '',
   });
 
   useEffect(() => {
@@ -55,6 +56,7 @@ const Index = () => {
         full_name: formData.fullName,
         age: parseInt(formData.age),
         parts_count: parseInt(formData.partsCount),
+        whatsapp: formData.whatsapp || null,
       });
 
     if (error) {
@@ -202,10 +204,32 @@ const Index = () => {
               />
             </div>
 
+            {/* WhatsApp */}
+            <div className="space-y-3">
+              <Label htmlFor="whatsapp" className="text-lg text-emerald-800 font-bold flex items-center gap-2">
+                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">3</span>
+                رقم الواتساب <span className="text-slate-400 text-sm font-normal">(اختياري - لاستلام الدرجات)</span>
+              </Label>
+              <div className="relative">
+                <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500" />
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  value={formData.whatsapp}
+                  onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                  placeholder="مثال: 01012345678"
+                  className="text-lg h-14 pr-12 border-3 border-emerald-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 rounded-xl shadow-md bg-white hover:border-emerald-400 transition-colors"
+                />
+              </div>
+              <p className="text-sm text-emerald-600 flex items-center gap-1">
+                <span>📱</span> سيتم إرسال درجاتك عبر الواتساب بعد انتهاء المسابقة
+              </p>
+            </div>
+
             {/* Parts Count */}
             <div className="space-y-3">
               <Label htmlFor="partsCount" className="text-lg text-emerald-800 font-bold flex items-center gap-2">
-                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">3</span>
+                <span className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-amber-400">4</span>
                 المستوى <span className="text-red-500">*</span>
               </Label>
               <Select value={formData.partsCount} onValueChange={(value) => setFormData({ ...formData, partsCount: value })}>

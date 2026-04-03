@@ -6,6 +6,7 @@ export interface Application {
   created_at: string;
   printed: boolean;
   rank?: string;
+  whatsapp?: string;
 }
 
 export interface AuthUser {

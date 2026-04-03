@@ -6,7 +6,7 @@ import { Application, Settings } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { LogOut, Printer, Users, BookOpen, RefreshCw, FileStack, Trash2, Lock, LockOpen, Award, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -142,6 +142,17 @@ const AdminDashboard = () => {
     return applications.filter(app => app.parts_count === level);
   };
 
+  const getLevelName = (parts: number) => {
+    if (parts === 30) return 'القرآن كاملاً';
+    if (parts === 20) return 'ثلثي القرآن';
+    if (parts === 15) return 'نصف القرآن';
+    if (parts === 10) return '10 أجزاء';
+    if (parts === 5) return '5 أجزاء';
+    if (parts === 3) return '3 أجزاء';
+    if (parts === 1) return '1 جزء';
+    return `${parts} جزء`;
+  };
+
   const handlePrint = (id: string) => {
     navigate(`/admin/print/${id}`);
   };
@@ -152,6 +163,34 @@ const AdminDashboard = () => {
 
   const handleCertificate = (id: string) => {
     navigate(`/admin/certificate/${id}`);
+  };
+
+  const handleSendGrade = (app: Application) => {
+    const level = getLevelName(app.parts_count);
+    const rankText = app.rank ? `المركز: ${app.rank}` : 'لم يتم تحديد المركز بعد';
+    const message = `السلام عليكم ورحمة الله وبركاته
+
+الطالب/ة الكريم/ة: ${app.full_name}
+
+يسعدنا إبلاغكم بنتيجة مسابقة الحاج حسن جودة للقرآن الكريم:
+
+🏅 ${rankText}
+📖 المستوى: ${level}
+
+جزاكم الله خيرًا على مشاركتكم المباركة،
+وبارك الله في جهودكم في حفظ كتابه الكريم.
+
+إدارة مسابقة قرية الحاج حسن جودة`;
+
+    const phone = app.whatsapp?.replace(/[^0-9]/g, '') || '';
+    if (!phone) {
+      toast.error('لم يسجل هذا المتسابق رقم واتساب');
+      return;
+    }
+    // تحويل الرقم المصري إلى صيغة دولية إن لزم
+    const intlPhone = phone.startsWith('0') ? '2' + phone : phone;
+    const url = `https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   const handleDelete = async () => {
@@ -301,7 +340,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-emerald-500">
             <div className="flex items-center justify-between">
               <div>
@@ -321,6 +360,18 @@ const AdminDashboard = () => {
                 </p>
               </div>
               <Printer className="h-12 w-12 text-amber-500 opacity-50" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-600 text-sm">لديهم واتساب</p>
+                <p className="text-3xl font-bold text-green-700">
+                  {applications.filter(app => app.whatsapp).length}
+                </p>
+              </div>
+              <MessageCircle className="h-12 w-12 text-green-500 opacity-50" />
             </div>
           </div>
 
@@ -403,28 +454,36 @@ const AdminDashboard = () => {
                       <table className="w-full">
                         <thead className="bg-slate-100 border-b-2 border-slate-200">
                           <tr>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">#</th>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الاسم</th>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">السن</th>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">تاريخ التسجيل</th>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الحالة</th>
-                            <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">الإجراءات</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">#</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">الاسم</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">السن</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">واتساب</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">تاريخ التسجيل</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">الحالة</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">الإجراءات</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
                           {levelApplications.map((app, index) => (
                             <tr key={app.id} className="hover:bg-slate-50">
-                              <td className="px-6 py-4 text-sm text-slate-600">{index + 1}</td>
-                              <td className="px-6 py-4 text-sm font-semibold text-slate-800">{app.full_name}</td>
-                              <td className="px-6 py-4 text-sm text-slate-600">{app.age} سنة</td>
-                              <td className="px-6 py-4 text-sm text-slate-600">
+                              <td className="px-4 py-4 text-sm text-slate-600">{index + 1}</td>
+                              <td className="px-4 py-4 text-sm font-semibold text-slate-800">{app.full_name}</td>
+                              <td className="px-4 py-4 text-sm text-slate-600">{app.age} سنة</td>
+                              <td className="px-4 py-4 text-sm text-slate-600">
+                                {app.whatsapp ? (
+                                  <span className="text-green-600 font-medium">{app.whatsapp}</span>
+                                ) : (
+                                  <span className="text-slate-400">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-4 text-sm text-slate-600">
                                 {new Date(app.created_at).toLocaleDateString('ar-EG', {
                                   year: 'numeric',
                                   month: 'long',
                                   day: 'numeric',
                                 })}
                               </td>
-                              <td className="px-6 py-4">
+                              <td className="px-4 py-4">
                                 {app.printed ? (
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     تم الطباعة
@@ -435,8 +494,8 @@ const AdminDashboard = () => {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
+                              <td className="px-4 py-4">
+                                <div className="flex items-center gap-1 flex-wrap">
                                   <Button
                                     onClick={() => handlePrint(app.id)}
                                     size="sm"
@@ -452,6 +511,15 @@ const AdminDashboard = () => {
                                   >
                                     <Award className="h-4 w-4 ml-1" />
                                     شهادة
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleSendGrade(app)}
+                                    size="sm"
+                                    className={`${app.whatsapp ? 'bg-green-500 hover:bg-green-600' : 'bg-slate-400 cursor-not-allowed'}`}
+                                    title={app.whatsapp ? `إرسال الدرجة إلى ${app.whatsapp}` : 'لا يوجد رقم واتساب'}
+                                  >
+                                    <MessageCircle className="h-4 w-4 ml-1" />
+                                    واتساب
                                   </Button>
                                   <Button
                                     onClick={() => {
