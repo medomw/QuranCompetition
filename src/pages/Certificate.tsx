@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Printer, ArrowRight } from 'lucide-react';
+import certificateTemplate from '@/assets/certificate-template-new.png';
 
 const RANK_OPTIONS = [
   'الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر',
@@ -63,29 +64,30 @@ const Certificate = () => {
 
   if (authLoading || loading || !application) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-amber-400 text-xl">جاري التحميل...</div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-blue-800 text-xl font-bold">جاري التحميل...</div>
       </div>
     );
   }
 
   const levelName = getLevelName(application.parts_count);
+  const hasRank = rank && rank !== 'none';
 
   return (
     <div dir="rtl">
       {/* ── Print Controls ── */}
-      <div className="print:hidden bg-slate-800 border-b border-slate-700 py-3 px-6 sticky top-0 z-10">
+      <div className="print:hidden bg-white border-b border-gray-200 shadow-sm py-3 px-6 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <Button onClick={() => navigate('/admin/dashboard')} variant="outline"
-            className="border-slate-500 text-slate-200 hover:bg-slate-700 text-sm">
-            <ArrowRight className="h-4 w-4 ml-2" />
+            className="border-gray-300 text-gray-700 hover:bg-gray-50 text-sm gap-2">
+            <ArrowRight className="h-4 w-4" />
             العودة للوحة التحكم
           </Button>
 
           <div className="flex items-center gap-2">
-            <Label className="text-slate-300 text-sm font-semibold">المركز:</Label>
+            <Label className="text-gray-700 text-sm font-semibold">المركز:</Label>
             <Select value={rank} onValueChange={setRank}>
-              <SelectTrigger className="w-44 bg-slate-700 border-slate-600 text-white text-sm">
+              <SelectTrigger className="w-44 border-gray-300 text-sm">
                 <SelectValue placeholder="اختر المركز" />
               </SelectTrigger>
               <SelectContent className="max-h-60">
@@ -96,24 +98,24 @@ const Certificate = () => {
               </SelectContent>
             </Select>
             <Button onClick={handleSaveRank} size="sm" variant="outline"
-              className="border-amber-500 text-amber-400 hover:bg-amber-500/10 text-sm">
+              className="border-blue-500 text-blue-700 hover:bg-blue-50 text-sm">
               حفظ
             </Button>
           </div>
 
           <Button onClick={() => window.print()}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-5">
-            <Printer className="h-4 w-4 ml-2" />
+            className="bg-blue-700 hover:bg-blue-800 text-white text-sm px-5 gap-2">
+            <Printer className="h-4 w-4" />
             طباعة الشهادة
           </Button>
         </div>
       </div>
 
-      {/* ── Certificate preview wrapper ── */}
-      <div className="min-h-screen bg-slate-900 print:bg-white flex items-center justify-center py-8 print:py-0">
+      {/* ── Certificate Preview ── */}
+      <div className="min-h-screen bg-gray-200 print:bg-white flex items-center justify-center py-8 print:py-0">
         {/*
           A4 landscape = 297 × 210 mm
-          At 96dpi: 297mm ≈ 1122px, 210mm ≈ 794px
+          Reference canvas: 1587 × 1122 px (approx)
         */}
         <div
           className="relative overflow-hidden print:shadow-none shadow-2xl"
@@ -121,170 +123,103 @@ const Certificate = () => {
             width: '297mm',
             height: '210mm',
             maxWidth: '100%',
-            /* fallback aspect ratio for screens narrower than 297mm */
-            aspectRatio: '297/210',
           }}
         >
-          {/* ── BLACK BACKGROUND ── */}
-          <div className="absolute inset-0"
-            style={{ background: 'linear-gradient(135deg,#080808 0%,#111 50%,#080808 100%)' }} />
+          {/* ── TEMPLATE IMAGE (full background) ── */}
+          <img
+            src={certificateTemplate}
+            alt="certificate background"
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: 'fill' }}
+          />
 
-          {/* ── OUTER GOLD BORDER ── */}
-          <div className="absolute inset-[10px] border-[6px] border-[#C9A84C] pointer-events-none" />
-          {/* ── INNER THIN BORDER ── */}
-          <div className="absolute inset-[20px] border border-[#E8C96B] pointer-events-none" />
-          <div className="absolute inset-[26px] border border-[#C9A84C] opacity-50 pointer-events-none" />
+          {/* ── DYNAMIC TEXT OVERLAY ── */}
+          {/* All positions use percentage so they scale with the container */}
 
-          {/* ── CORNER ORNAMENTS ── */}
-          {[
-            { top:'12px', right:'12px' },
-            { top:'12px', left:'12px' },
-            { bottom:'12px', right:'12px' },
-            { bottom:'12px', left:'12px' },
-          ].map((pos, i) => (
-            <div key={i} className="absolute text-[40px] leading-none pointer-events-none"
-              style={{ ...pos, color:'#C9A84C', opacity: 0.9, fontFamily:'serif' }}>
-              ❧
-            </div>
-          ))}
-
-          {/* ── SIDE FAINT STARS ── */}
-          <div className="absolute text-[80px] leading-none pointer-events-none"
-            style={{ top:'50%', right:'26px', transform:'translateY(-50%)', color:'#C9A84C', opacity:0.08, fontFamily:'serif' }}>✦</div>
-          <div className="absolute text-[80px] leading-none pointer-events-none"
-            style={{ top:'50%', left:'26px', transform:'translateY(-50%)', color:'#C9A84C', opacity:0.08, fontFamily:'serif' }}>✦</div>
-
-          {/* ── TOP BANNER (Bismillah) ── */}
-          <div className="absolute left-[32px] right-[32px]"
-            style={{ top:'30px', background:'linear-gradient(90deg,#1a1200,#3d2900,#3d2900,#1a1200)', border:'1px solid #C9A84C', padding:'8px 0' }}>
-            <p className="text-center font-bold" style={{ fontSize:'28px', color:'#FFD700', fontFamily:'serif', letterSpacing:'2px' }}>
-              ﷽
-            </p>
+          {/* Participant name — on the dotted line after "إلى الطالب/ة:" */}
+          {/* Image analysis: name area is roughly at 38% top, starting at 28% from right, width ~65% */}
+          <div
+            className="absolute"
+            style={{
+              top: '37%',
+              right: '28%',
+              width: '65%',
+              direction: 'rtl',
+              textAlign: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", serif',
+                fontSize: 'clamp(16px, 2.4vw, 30px)',
+                fontWeight: '700',
+                color: '#1a3a6b',
+                letterSpacing: '1px',
+              }}
+            >
+              {application.full_name}
+            </span>
           </div>
 
-          {/* ── HORIZONTAL DIVIDER LINE 1 ── */}
-          <div className="absolute left-[50px] right-[50px]"
-            style={{ top:'90px', height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
-
-          {/* ── ORG TITLE ── */}
-          <p className="absolute w-full text-center font-bold"
-            style={{ top:'100px', fontSize:'18px', color:'#FFD700', fontFamily:'serif', letterSpacing:'1px',
-              textShadow:'0 0 8px rgba(255,215,0,0.4)' }}>
-            مسابقة القرآن الكريم &mdash; قرية الحاج حسن جودة
-          </p>
-
-          {/* ── CENTRAL GOLD ROSETTE ── */}
-          <div className="absolute"
-            style={{ top:'126px', left:'50%', transform:'translateX(-50%)', width:'60px', height:'60px' }}>
-            <div style={{
-              width:'60px', height:'60px', borderRadius:'50%',
-              background:'radial-gradient(circle,#FFD700 0%,#C9A84C 50%,rgba(180,120,0,0) 100%)',
-              border:'2px solid #FFD700',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              boxShadow:'0 0 16px rgba(255,215,0,0.5)',
-            }}>
-              <div style={{ width:'42px', height:'42px', borderRadius:'50%', background:'#080808',
-                display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <span style={{ color:'#FFD700', fontSize:'24px', fontFamily:'serif' }}>★</span>
-              </div>
-            </div>
+          {/* Rank — on dotted line after "وحصوله على المركز:" */}
+          {/* Rank line is at approx 59% from top */}
+          <div
+            className="absolute"
+            style={{
+              top: '58%',
+              right: '28%',
+              width: '65%',
+              direction: 'rtl',
+              textAlign: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", serif',
+                fontSize: 'clamp(13px, 1.9vw, 24px)',
+                fontWeight: '700',
+                color: '#c49a00',
+              }}
+            >
+              {hasRank ? rank : ''}
+            </span>
           </div>
 
-          {/* ── CERTIFICATE TITLE ── */}
-          <p className="absolute w-full text-center font-bold"
-            style={{ top:'202px', fontSize:'34px', letterSpacing:'6px',
-              background:'linear-gradient(90deg,#C9A84C,#FFFFFF,#C9A84C)',
-              WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
-              fontFamily:'serif', textShadow:'0 0 20px rgba(255,215,0,0.3)' }}>
-            شهادة تقدير
-          </p>
-
-          {/* ── DIVIDER 2 ── */}
-          <div className="absolute left-[80px] right-[80px]"
-            style={{ top:'246px', height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
-
-          {/* ── PRESENTED TO ── */}
-          <p className="absolute w-full text-center"
-            style={{ top:'256px', fontSize:'14px', color:'#aaaaaa', fontFamily:'serif' }}>
-            تُقدَّم هذه الشهادة إلى
-          </p>
-
-          {/* ── PARTICIPANT NAME ── */}
-          <div className="absolute left-[50px] right-[50px]" style={{ top:'276px' }}>
-            {/* dotted underline line */}
-            <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'4px' }}>
-              <p className="text-center font-bold"
-                style={{ fontSize:'32px', fontFamily:'serif', letterSpacing:'3px',
-                  background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
-                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
-                  textShadow:'0 0 12px rgba(255,215,0,0.3)' }}>
-                {application.full_name}
-              </p>
-            </div>
-          </div>
-
-          {/* ── PARTICIPATION LINE ── */}
-          <p className="absolute w-full text-center"
-            style={{ top:'332px', fontSize:'14px', color:'#cccccc', fontFamily:'serif' }}>
-            لمشاركته في مسابقة القرآن الكريم المباركة — مستوى:
-          </p>
-
-          {/* ── LEVEL ── */}
-          <div className="absolute left-[80px] right-[80px]" style={{ top:'352px' }}>
-            <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'3px' }}>
-              <p className="text-center font-bold"
-                style={{ fontSize:'22px', fontFamily:'serif', letterSpacing:'2px',
-                  background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
-                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-                {levelName}
-              </p>
-            </div>
-          </div>
-
-          {/* ── RANK (if set) ── */}
-          {rank && rank !== 'none' && (
-            <>
-              <p className="absolute w-full text-center"
-                style={{ top:'390px', fontSize:'13px', color:'#aaaaaa', fontFamily:'serif' }}>
-                وحصوله على المركز:
-              </p>
-              <div className="absolute" style={{ top:'406px', left:'50%', transform:'translateX(-50%)', minWidth:'160px' }}>
-                <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'3px' }}>
-                  <p className="text-center font-bold"
-                    style={{ fontSize:'22px', fontFamily:'serif', letterSpacing:'2px',
-                      background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
-                      WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-                    {rank}
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ── DIVIDER 3 ── */}
-          <div className="absolute left-[50px] right-[50px]"
-            style={{ top: rank && rank !== 'none' ? '442px' : '400px',
-              height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
-
-          {/* ── BOTTOM BANNER ── */}
-          <div className="absolute left-[32px] right-[32px] bottom-[30px]"
-            style={{ background:'linear-gradient(90deg,#1a1200,#3d2900,#3d2900,#1a1200)', border:'1px solid #C9A84C', padding:'8px 16px' }}>
-            <p className="text-center font-bold"
-              style={{ fontSize:'16px', color:'#FFD700', fontFamily:'serif', letterSpacing:'1px' }}>
-              "وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا" — سورة المزمل
-            </p>
-            <p className="text-center mt-1" style={{ fontSize:'11px', color:'#888', fontFamily:'serif' }}>
-              إدارة مسابقة قرية الحاج حسن جودة
-            </p>
+          {/* Level — on dotted line after "في مستوي:" */}
+          {/* Level line is at approx 68% from top */}
+          <div
+            className="absolute"
+            style={{
+              top: '67.5%',
+              right: '28%',
+              width: '65%',
+              direction: 'rtl',
+              textAlign: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", serif',
+                fontSize: 'clamp(13px, 1.9vw, 24px)',
+                fontWeight: '700',
+                color: '#c49a00',
+              }}
+            >
+              {levelName}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── Print styles ── */}
+      {/* ── Print Styles ── */}
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 0; }
           body { margin: 0; padding: 0; }
+          .print\\:hidden { display: none !important; }
+          .print\\:bg-white { background: white !important; }
+          .print\\:shadow-none { box-shadow: none !important; }
+          .print\\:py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
         }
       `}</style>
     </div>
