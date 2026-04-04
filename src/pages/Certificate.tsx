@@ -7,7 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Printer, ArrowRight, Award, Star } from 'lucide-react';
+import { Printer, ArrowRight } from 'lucide-react';
+
+const RANK_OPTIONS = [
+  'الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر',
+  'الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر',
+  'السابع عشر','الثامن عشر','التاسع عشر','العشرون',
+];
+
+const getLevelName = (parts: number) => {
+  if (parts === 30) return 'القرآن الكريم كاملاً';
+  if (parts === 20) return 'ثلثي القرآن الكريم';
+  if (parts === 15) return 'نصف القرآن الكريم';
+  if (parts === 10) return 'عشرة أجزاء';
+  if (parts === 5)  return 'خمسة أجزاء';
+  if (parts === 3)  return 'ثلاثة أجزاء';
+  if (parts === 1)  return 'جزء واحد';
+  return `${parts} جزء`;
+};
 
 const Certificate = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,23 +35,14 @@ const Certificate = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/admin/login');
-    }
+    if (!authLoading && !user) navigate('/admin/login');
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
     const fetchApplication = async () => {
       if (!id) return;
-
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('id', id)
-        .single();
-
+      const { data, error } = await supabase.from('applications').select('*').eq('id', id).single();
       if (error) {
-        console.error('Error fetching application:', error);
         toast.error('حدث خطأ في تحميل البيانات');
         navigate('/admin/dashboard');
       } else {
@@ -43,178 +51,242 @@ const Certificate = () => {
       }
       setLoading(false);
     };
-
-    if (user) {
-      fetchApplication();
-    }
+    if (user) fetchApplication();
   }, [id, user, navigate]);
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const handleSaveRank = async () => {
     if (!application) return;
-
-    const { error } = await supabase
-      .from('applications')
-      .update({ rank })
-      .eq('id', application.id);
-
-    if (error) {
-      console.error('Error saving rank:', error);
-      toast.error('حدث خطأ في حفظ المركز');
-    } else {
-      toast.success('تم حفظ المركز بنجاح');
-    }
+    const { error } = await supabase.from('applications').update({ rank }).eq('id', application.id);
+    if (error) toast.error('حدث خطأ في حفظ المركز');
+    else toast.success('تم حفظ المركز بنجاح');
   };
 
   if (authLoading || loading || !application) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-emerald-700 text-xl">جاري التحميل...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-amber-400 text-xl">جاري التحميل...</div>
       </div>
     );
   }
 
-  const getLevelName = (parts: number) => {
-    if (parts === 30) return 'القرآن كاملاً';
-    if (parts === 20) return 'ثلثي القرآن';
-    if (parts === 15) return 'نصف القرآن';
-    if (parts === 10) return '10 أجزاء';
-    if (parts === 5) return '5 أجزاء';
-    if (parts === 3) return '3 أجزاء';
-    if (parts === 1) return '1 جزء';
-    return `${parts} جزء`;
-  };
+  const levelName = getLevelName(application.parts_count);
 
   return (
-    <div>
-      {/* Print Controls - Hidden when printing */}
-      <div className="print:hidden bg-slate-100 border-b border-slate-300 py-4 px-6 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <Button
-            onClick={() => navigate('/admin/dashboard')}
-            variant="outline"
-            className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
-          >
+    <div dir="rtl">
+      {/* ── Print Controls ── */}
+      <div className="print:hidden bg-slate-800 border-b border-slate-700 py-3 px-6 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-3">
+          <Button onClick={() => navigate('/admin/dashboard')} variant="outline"
+            className="border-slate-500 text-slate-200 hover:bg-slate-700 text-sm">
             <ArrowRight className="h-4 w-4 ml-2" />
             العودة للوحة التحكم
           </Button>
-          
-          <div className="flex items-center gap-3">
-            <Label htmlFor="rank">المركز:</Label>
+
+          <div className="flex items-center gap-2">
+            <Label className="text-slate-300 text-sm font-semibold">المركز:</Label>
             <Select value={rank} onValueChange={setRank}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-44 bg-slate-700 border-slate-600 text-white text-sm">
                 <SelectValue placeholder="اختر المركز" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="الأول">الأول</SelectItem>
-                <SelectItem value="الثاني">الثاني</SelectItem>
-                <SelectItem value="الثالث">الثالث</SelectItem>
-                <SelectItem value="الرابع">الرابع</SelectItem>
-                <SelectItem value="الخامس">الخامس</SelectItem>
-                <SelectItem value="السادس">السادس</SelectItem>
-                <SelectItem value="السابع">السابع</SelectItem>
-                <SelectItem value="الثامن">الثامن</SelectItem>
-                <SelectItem value="التاسع">التاسع</SelectItem>
-                <SelectItem value="العاشر">العاشر</SelectItem>
-                <SelectItem value="الحادي عشر">الحادي عشر</SelectItem>
-                <SelectItem value="الثاني عشر">الثاني عشر</SelectItem>
-                <SelectItem value="الثالث عشر">الثالث عشر</SelectItem>
-                <SelectItem value="الرابع عشر">الرابع عشر</SelectItem>
-                <SelectItem value="الخامس عشر">الخامس عشر</SelectItem>
-                <SelectItem value="السادس عشر">السادس عشر</SelectItem>
-                <SelectItem value="السابع عشر">السابع عشر</SelectItem>
-                <SelectItem value="الثامن عشر">الثامن عشر</SelectItem>
-                <SelectItem value="التاسع عشر">التاسع عشر</SelectItem>
-                <SelectItem value="العشرون">العشرون</SelectItem>
+              <SelectContent className="max-h-60">
+                <SelectItem value="none">بدون مركز</SelectItem>
+                {RANK_OPTIONS.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleSaveRank} variant="outline">
-              حفظ المركز
+            <Button onClick={handleSaveRank} size="sm" variant="outline"
+              className="border-amber-500 text-amber-400 hover:bg-amber-500/10 text-sm">
+              حفظ
             </Button>
           </div>
 
-          <Button
-            onClick={handlePrint}
-            className="bg-emerald-600 hover:bg-emerald-700 text-lg px-6"
-          >
-            <Printer className="h-5 w-5 ml-2" />
+          <Button onClick={() => window.print()}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-5">
+            <Printer className="h-4 w-4 ml-2" />
             طباعة الشهادة
           </Button>
         </div>
       </div>
 
-      {/* Certificate - A4 Landscape */}
-      <div className="min-h-screen bg-slate-100 print:bg-white py-8 print:py-0 flex items-center justify-center">
-        <div 
-          className="bg-white shadow-2xl print:shadow-none relative overflow-hidden" 
-          style={{ 
+      {/* ── Certificate preview wrapper ── */}
+      <div className="min-h-screen bg-slate-900 print:bg-white flex items-center justify-center py-8 print:py-0">
+        {/*
+          A4 landscape = 297 × 210 mm
+          At 96dpi: 297mm ≈ 1122px, 210mm ≈ 794px
+        */}
+        <div
+          className="relative overflow-hidden print:shadow-none shadow-2xl"
+          style={{
             width: '297mm',
             height: '210mm',
             maxWidth: '100%',
-            backgroundImage: `url(${new URL('../assets/certificate-template.png', import.meta.url).href})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            /* fallback aspect ratio for screens narrower than 297mm */
+            aspectRatio: '297/210',
           }}
-          dir="rtl"
         >
-          {/* Student Name - positioned on the dotted line after "الطالب/ة:" */}
-          <div className="absolute" style={{ 
-            top: '31.5%',
-            right: '18%',
-            width: '65%'
-          }}>
-            <h2 className="text-4xl font-bold" style={{ 
-              fontFamily: 'Cairo, sans-serif',
-              color: '#D4AF37',
-              textAlign: 'center',
-              letterSpacing: '2px',
-              textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
-            }}>
-              {application.full_name}
-            </h2>
+          {/* ── BLACK BACKGROUND ── */}
+          <div className="absolute inset-0"
+            style={{ background: 'linear-gradient(135deg,#080808 0%,#111 50%,#080808 100%)' }} />
+
+          {/* ── OUTER GOLD BORDER ── */}
+          <div className="absolute inset-[10px] border-[6px] border-[#C9A84C] pointer-events-none" />
+          {/* ── INNER THIN BORDER ── */}
+          <div className="absolute inset-[20px] border border-[#E8C96B] pointer-events-none" />
+          <div className="absolute inset-[26px] border border-[#C9A84C] opacity-50 pointer-events-none" />
+
+          {/* ── CORNER ORNAMENTS ── */}
+          {[
+            { top:'12px', right:'12px' },
+            { top:'12px', left:'12px' },
+            { bottom:'12px', right:'12px' },
+            { bottom:'12px', left:'12px' },
+          ].map((pos, i) => (
+            <div key={i} className="absolute text-[40px] leading-none pointer-events-none"
+              style={{ ...pos, color:'#C9A84C', opacity: 0.9, fontFamily:'serif' }}>
+              ❧
+            </div>
+          ))}
+
+          {/* ── SIDE FAINT STARS ── */}
+          <div className="absolute text-[80px] leading-none pointer-events-none"
+            style={{ top:'50%', right:'26px', transform:'translateY(-50%)', color:'#C9A84C', opacity:0.08, fontFamily:'serif' }}>✦</div>
+          <div className="absolute text-[80px] leading-none pointer-events-none"
+            style={{ top:'50%', left:'26px', transform:'translateY(-50%)', color:'#C9A84C', opacity:0.08, fontFamily:'serif' }}>✦</div>
+
+          {/* ── TOP BANNER (Bismillah) ── */}
+          <div className="absolute left-[32px] right-[32px]"
+            style={{ top:'30px', background:'linear-gradient(90deg,#1a1200,#3d2900,#3d2900,#1a1200)', border:'1px solid #C9A84C', padding:'8px 0' }}>
+            <p className="text-center font-bold" style={{ fontSize:'28px', color:'#FFD700', fontFamily:'serif', letterSpacing:'2px' }}>
+              ﷽
+            </p>
           </div>
 
-          {/* Rank - positioned on the dotted line after "وحصوله على المركز" */}
-          {rank && (
-            <div className="absolute" style={{ 
-              top: '57.5%',
-              right: '18%',
-              width: '25%'
+          {/* ── HORIZONTAL DIVIDER LINE 1 ── */}
+          <div className="absolute left-[50px] right-[50px]"
+            style={{ top:'90px', height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
+
+          {/* ── ORG TITLE ── */}
+          <p className="absolute w-full text-center font-bold"
+            style={{ top:'100px', fontSize:'18px', color:'#FFD700', fontFamily:'serif', letterSpacing:'1px',
+              textShadow:'0 0 8px rgba(255,215,0,0.4)' }}>
+            مسابقة القرآن الكريم &mdash; قرية الحاج حسن جودة
+          </p>
+
+          {/* ── CENTRAL GOLD ROSETTE ── */}
+          <div className="absolute"
+            style={{ top:'126px', left:'50%', transform:'translateX(-50%)', width:'60px', height:'60px' }}>
+            <div style={{
+              width:'60px', height:'60px', borderRadius:'50%',
+              background:'radial-gradient(circle,#FFD700 0%,#C9A84C 50%,rgba(180,120,0,0) 100%)',
+              border:'2px solid #FFD700',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              boxShadow:'0 0 16px rgba(255,215,0,0.5)',
             }}>
-              <h3 className="text-3xl font-bold" style={{ 
-                fontFamily: 'Cairo, sans-serif',
-                color: '#D4AF37',
-                textAlign: 'center',
-                letterSpacing: '1px',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
-              }}>
-                {rank}
-              </h3>
+              <div style={{ width:'42px', height:'42px', borderRadius:'50%', background:'#080808',
+                display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <span style={{ color:'#FFD700', fontSize:'24px', fontFamily:'serif' }}>★</span>
+              </div>
             </div>
+          </div>
+
+          {/* ── CERTIFICATE TITLE ── */}
+          <p className="absolute w-full text-center font-bold"
+            style={{ top:'202px', fontSize:'34px', letterSpacing:'6px',
+              background:'linear-gradient(90deg,#C9A84C,#FFFFFF,#C9A84C)',
+              WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+              fontFamily:'serif', textShadow:'0 0 20px rgba(255,215,0,0.3)' }}>
+            شهادة تقدير
+          </p>
+
+          {/* ── DIVIDER 2 ── */}
+          <div className="absolute left-[80px] right-[80px]"
+            style={{ top:'246px', height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
+
+          {/* ── PRESENTED TO ── */}
+          <p className="absolute w-full text-center"
+            style={{ top:'256px', fontSize:'14px', color:'#aaaaaa', fontFamily:'serif' }}>
+            تُقدَّم هذه الشهادة إلى
+          </p>
+
+          {/* ── PARTICIPANT NAME ── */}
+          <div className="absolute left-[50px] right-[50px]" style={{ top:'276px' }}>
+            {/* dotted underline line */}
+            <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'4px' }}>
+              <p className="text-center font-bold"
+                style={{ fontSize:'32px', fontFamily:'serif', letterSpacing:'3px',
+                  background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
+                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+                  textShadow:'0 0 12px rgba(255,215,0,0.3)' }}>
+                {application.full_name}
+              </p>
+            </div>
+          </div>
+
+          {/* ── PARTICIPATION LINE ── */}
+          <p className="absolute w-full text-center"
+            style={{ top:'332px', fontSize:'14px', color:'#cccccc', fontFamily:'serif' }}>
+            لمشاركته في مسابقة القرآن الكريم المباركة — مستوى:
+          </p>
+
+          {/* ── LEVEL ── */}
+          <div className="absolute left-[80px] right-[80px]" style={{ top:'352px' }}>
+            <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'3px' }}>
+              <p className="text-center font-bold"
+                style={{ fontSize:'22px', fontFamily:'serif', letterSpacing:'2px',
+                  background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
+                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                {levelName}
+              </p>
+            </div>
+          </div>
+
+          {/* ── RANK (if set) ── */}
+          {rank && rank !== 'none' && (
+            <>
+              <p className="absolute w-full text-center"
+                style={{ top:'390px', fontSize:'13px', color:'#aaaaaa', fontFamily:'serif' }}>
+                وحصوله على المركز:
+              </p>
+              <div className="absolute" style={{ top:'406px', left:'50%', transform:'translateX(-50%)', minWidth:'160px' }}>
+                <div style={{ borderBottom:'2px dotted #C9A84C', paddingBottom:'3px' }}>
+                  <p className="text-center font-bold"
+                    style={{ fontSize:'22px', fontFamily:'serif', letterSpacing:'2px',
+                      background:'linear-gradient(90deg,#C9A84C,#FFD700,#C9A84C)',
+                      WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                    {rank}
+                  </p>
+                </div>
+              </div>
+            </>
           )}
 
-          {/* Level - positioned on the dotted line after "في مستوى" */}
-          <div className="absolute" style={{ 
-            top: '64.5%',
-            right: '18%',
-            width: '40%'
-          }}>
-            <h3 className="text-3xl font-bold" style={{ 
-              fontFamily: 'Cairo, sans-serif',
-              color: '#D4AF37',
-              textAlign: 'center',
-              letterSpacing: '1px',
-              textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
-            }}>
-              {getLevelName(application.parts_count)}
-            </h3>
+          {/* ── DIVIDER 3 ── */}
+          <div className="absolute left-[50px] right-[50px]"
+            style={{ top: rank && rank !== 'none' ? '442px' : '400px',
+              height:'1px', background:'linear-gradient(90deg,transparent,#C9A84C,#FFD700,#C9A84C,transparent)' }} />
+
+          {/* ── BOTTOM BANNER ── */}
+          <div className="absolute left-[32px] right-[32px] bottom-[30px]"
+            style={{ background:'linear-gradient(90deg,#1a1200,#3d2900,#3d2900,#1a1200)', border:'1px solid #C9A84C', padding:'8px 16px' }}>
+            <p className="text-center font-bold"
+              style={{ fontSize:'16px', color:'#FFD700', fontFamily:'serif', letterSpacing:'1px' }}>
+              "وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا" — سورة المزمل
+            </p>
+            <p className="text-center mt-1" style={{ fontSize:'11px', color:'#888', fontFamily:'serif' }}>
+              إدارة مسابقة قرية الحاج حسن جودة
+            </p>
           </div>
         </div>
       </div>
+
+      {/* ── Print styles ── */}
+      <style>{`
+        @media print {
+          @page { size: A4 landscape; margin: 0; }
+          body { margin: 0; padding: 0; }
+        }
+      `}</style>
     </div>
   );
 };
